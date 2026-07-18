@@ -217,6 +217,8 @@ Provided for explanation only; not mandatory.
 
 No future chapter SHALL redefine these terms.
 
+For the complete canonical vocabulary, operational classifications, domain rules, and codebase naming standards, see the **[Domain Glossary & Ubiquitous Language](../domain/glossary.md)**.
+
 ---
 
 # 8. Requirement Identifier Convention

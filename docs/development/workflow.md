@@ -113,13 +113,12 @@ In accordance with constitutional invariant **INV-002** (Human authority overrid
 
 To preserve repository safety and code quality, the following rules **SHOULD** be configured in GitHub repository settings for the `main` branch:
 
-1.  **Require a pull request before merging**: 
-    *   Enable "Require approvals" (minimum of 1 approval from a human reviewer).
-    *   Enable "Dismiss stale pull request approvals when new commits are pushed".
-    *   Enable "Require review from Code Owners" (restricting core constitutional and spec folders as per `/CODEOWNERS`).
+1.  **Require a pull request before merging**:
+    - Enable "Require approvals" (minimum of 1 approval from a human reviewer).
+    - Enable "Dismiss stale pull request approvals when new commits are pushed".
+    - Enable "Require review from Code Owners" (restricting core constitutional and spec folders as per `/CODEOWNERS`).
 2.  **Require status checks to pass before merging**:
-    *   Enable "Require branches to be up to date before merging".
-    *   Add `Code Quality and Build Checks` as a required status check (defined in `.github/workflows/ci.yml`).
+    - Enable "Require branches to be up to date before merging".
+    - Add `Code Quality and Build Checks` as a required status check (defined in `.github/workflows/ci.yml`).
 3.  **Require conversation resolution before merging**: All review comments and discussions **MUST** be marked resolved.
 4.  **Block force pushes and branch deletions**: Prevent history rewriting or accidental loss of `main` history.
-

@@ -30,6 +30,10 @@ The MEVIS documentation is organized into logical functional folders to make it 
 
 - **[Product Vision Document](./product/Product%20Vision%20doc%20v1.0.md)**: Defines the executive vision, primary stakeholders (Volunteers, Coordinators, Fans), and product differentiation.
 
+### 📖 Domain Language
+
+- **[Domain Glossary & Ubiquitous Language](./domain/glossary.md)**: Defines the canonical vocabulary, operational terminology standard, domain rules, and naming standards.
+
 ### 📐 Engineering & Architecture
 
 - **[MEVIS Engineering Constitution (MEC)](./engineering/MEVIS%20Product%20Constitution.md)**: Chapter 1 defining the core constitutional authority and the Open Decisions Register (`OD-001` through `OD-008`).

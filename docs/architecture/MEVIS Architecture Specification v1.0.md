@@ -11,7 +11,7 @@ Authority: Subordinate to [MEVIS Engineering Constitution](../engineering/MEVIS%
 
 This document defines the platform architecture for MEVIS as an AI-native operational intelligence system for mega-event volunteer operations.
 
-It covers system boundaries, service decomposition, data architecture, API boundaries, event architecture, security controls, deployment topology, and evolution path from hackathon MVP to production. For AI reasoning behaviors, refer to the [AI Reasoning Specification](../reasoning/MEVIS%20AI%20Reasoning%20Specification%20v1.0.md).
+It covers system boundaries, service decomposition, data architecture, API boundaries, event architecture, security controls, deployment topology, and evolution path from hackathon MVP to production. For AI reasoning behaviors, refer to the [AI Reasoning Specification](../reasoning/MEVIS%20AI%20Reasoning%20Specification%20v1.0.md). All architectural abstractions and interface schemas MUST conform to the **[Domain Glossary & Ubiquitous Language](../domain/glossary.md)**.
 
 ---
 

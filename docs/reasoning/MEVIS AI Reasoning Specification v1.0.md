@@ -11,7 +11,7 @@ Authority: Subordinate to [MEVIS Engineering Constitution](../engineering/MEVIS%
 
 This specification defines the normative AI reasoning architecture for MEVIS.
 
-It establishes the canonical cognitive loop, context schema, world-state semantics, policy and trust gates, decision graph requirements, memory behavior, multi-agent governance, evaluation harness, and simulation protocol. For platform services and data architecture, refer to the [Architecture Specification](../architecture/MEVIS%20Architecture%20Specification%20v1.0.md).
+It establishes the canonical cognitive loop, context schema, world-state semantics, policy and trust gates, decision graph requirements, memory behavior, multi-agent governance, evaluation harness, and simulation protocol. For platform services and data architecture, refer to the [Architecture Specification](../architecture/MEVIS%20Architecture%20Specification%20v1.0.md). All reasoning logic, schemas, and cognitive loop states MUST conform to the **[Domain Glossary & Ubiquitous Language](../domain/glossary.md)**.
 
 ---
 

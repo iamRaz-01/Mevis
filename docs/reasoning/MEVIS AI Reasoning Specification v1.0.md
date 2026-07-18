@@ -3,15 +3,15 @@
 Status: Draft  
 Owner: MEVIS AI Architecture Group  
 Last Updated: 2026-07-18  
-Authority: Subordinate to MEVIS Engineering Constitution and Product Vision
-
+Authority: Subordinate to [MEVIS Engineering Constitution](../engineering/MEVIS%20Product%20Constitution.md) and [Product Vision](../product/Product%20Vision%20doc%20v1.0.md)
+ 
 ---
-
+ 
 ## 1. Purpose
-
+ 
 This specification defines the normative AI reasoning architecture for MEVIS.
-
-It establishes the canonical cognitive loop, context schema, world-state semantics, policy and trust gates, decision graph requirements, memory behavior, multi-agent governance, evaluation harness, and simulation protocol.
+ 
+It establishes the canonical cognitive loop, context schema, world-state semantics, policy and trust gates, decision graph requirements, memory behavior, multi-agent governance, evaluation harness, and simulation protocol. For platform services and data architecture, refer to the [Architecture Specification](../architecture/MEVIS%20Architecture%20Specification%20v1.0.md).
 
 ---
 

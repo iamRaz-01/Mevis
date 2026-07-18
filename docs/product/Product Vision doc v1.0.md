@@ -6,10 +6,10 @@
 
 # 1. Document Purpose
 
-This document serves as the **single source of truth** for the MEVIS platform.
-
+This document serves as the **single source of truth** for the MEVIS platform. All engineering implementation rules must conform to the [MEVIS Engineering Constitution](../engineering/MEVIS%20Product%20Constitution.md).
+ 
 It defines:
-
+ 
 * Why MEVIS exists.
 * The real problem it solves.
 * The philosophy behind the system.
@@ -18,9 +18,9 @@ It defines:
 * The intelligence capabilities.
 * The expected behaviors.
 * The architectural direction.
-
+ 
 Every AI agent, engineer, designer, architect, and contributor should understand this document before implementing any feature.
-
+ 
 If an implementation contradicts this vision, the implementation is considered incorrect.
 
 ---

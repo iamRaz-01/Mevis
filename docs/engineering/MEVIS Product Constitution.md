@@ -130,18 +130,20 @@ The MEC SHALL NOT prescribe implementation details such as framework selection, 
 ---
 
 # 5. Constitutional Authority Hierarchy
-
+ 
 The following precedence SHALL apply whenever two artifacts conflict.
-
+ 
 | Priority | Authority                            | Status                  |
 | -------- | ------------------------------------ | ----------------------- |
 | 1        | MEVIS Engineering Constitution (MEC) | Normative               |
-| 2        | Product Vision                       | Intent Authority        |
+| 2        | [Product Vision](../product/Product%20Vision%20doc%20v1.0.md)                       | Intent Authority        |
 | 3        | Product Requirements Document (PRD)  | Functional Authority    |
 | 4        | Architecture Decision Records (ADR)  | Architectural Authority |
 | 5        | Implementation                       | Executable Authority    |
-
+ 
 Lower-priority artifacts SHALL NOT contradict higher-priority artifacts.
+ 
+Detailed architectural designs and reasoning pipelines are specified in the [Architecture Specification](../architecture/MEVIS%20Architecture%20Specification%20v1.0.md) and [AI Reasoning Specification](../reasoning/MEVIS%20AI%20Reasoning%20Specification%20v1.0.md).
 
 ---
 

@@ -3,15 +3,15 @@
 Status: Draft  
 Owner: MEVIS Architecture Group  
 Last Updated: 2026-07-18  
-Authority: Subordinate to MEVIS Engineering Constitution and Product Vision
-
+Authority: Subordinate to [MEVIS Engineering Constitution](../engineering/MEVIS%20Product%20Constitution.md) and [Product Vision](../product/Product%20Vision%20doc%20v1.0.md)
+ 
 ---
-
+ 
 ## 1. Purpose
-
+ 
 This document defines the platform architecture for MEVIS as an AI-native operational intelligence system for mega-event volunteer operations.
-
-It covers system boundaries, service decomposition, data architecture, API boundaries, event architecture, security controls, deployment topology, and evolution path from hackathon MVP to production.
+ 
+It covers system boundaries, service decomposition, data architecture, API boundaries, event architecture, security controls, deployment topology, and evolution path from hackathon MVP to production. For AI reasoning behaviors, refer to the [AI Reasoning Specification](../reasoning/MEVIS%20AI%20Reasoning%20Specification%20v1.0.md).
 
 ---
 

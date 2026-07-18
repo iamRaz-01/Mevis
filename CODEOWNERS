@@ -1,0 +1,15 @@
+# CODEOWNERS
+# Global code ownership configuration for MEVIS
+
+# Default owner for all files in the repository
+*                   @iamRaz-01
+
+# Core documentation and engineering constitution files
+/docs/engineering/   @iamRaz-01
+/docs/architecture/  @iamRaz-01
+/docs/reasoning/     @iamRaz-01
+
+# GitHub actions and workflow configurations
+/.github/workflows/  @iamRaz-01
+/package.json        @iamRaz-01
+/eslint.config.js    @iamRaz-01

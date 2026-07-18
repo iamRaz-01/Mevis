@@ -32,27 +32,27 @@ The MEC SHALL function as the primary engineering specification for both human e
 
 The MEC SHALL be consumable by:
 
-* Human software engineers
-* Solution architects
-* AI architects
-* Prompt engineers
-* DevOps engineers
-* QA engineers
-* Product engineers
-* Autonomous AI coding agents
+- Human software engineers
+- Solution architects
+- AI architects
+- Prompt engineers
+- DevOps engineers
+- QA engineers
+- Product engineers
+- Autonomous AI coding agents
 
 Including, but not limited to:
 
-* Claude Code
-* OpenAI Codex
-* Cursor
-* Antigravity
-* Cline
-* Gemini CLI
-* GitHub Copilot
-* Roo Code
-* Continue.dev
-* Windsurf
+- Claude Code
+- OpenAI Codex
+- Cursor
+- Antigravity
+- Cline
+- Gemini CLI
+- GitHub Copilot
+- Roo Code
+- Continue.dev
+- Windsurf
 
 No implementation MAY assume knowledge outside this constitution and its referenced authoritative documents.
 
@@ -96,13 +96,13 @@ The constitution SHALL support future extension without breaking existing consti
 
 The constitution SHALL NOT depend on any specific:
 
-* programming language
-* cloud provider
-* database
-* framework
-* AI model
-* orchestration platform
-* deployment strategy
+- programming language
+- cloud provider
+- database
+- framework
+- AI model
+- orchestration platform
+- deployment strategy
 
 ---
 
@@ -110,39 +110,39 @@ The constitution SHALL NOT depend on any specific:
 
 The MEC governs:
 
-* domain modeling
-* terminology
-* engineering principles
-* AI behavior
-* reasoning contracts
-* architectural constraints
-* service responsibilities
-* data contracts
-* event semantics
-* memory semantics
-* trust and safety rules
-* explainability requirements
-* interoperability requirements
-* compliance criteria
+- domain modeling
+- terminology
+- engineering principles
+- AI behavior
+- reasoning contracts
+- architectural constraints
+- service responsibilities
+- data contracts
+- event semantics
+- memory semantics
+- trust and safety rules
+- explainability requirements
+- interoperability requirements
+- compliance criteria
 
 The MEC SHALL NOT prescribe implementation details such as framework selection, programming language, UI libraries, infrastructure vendors, or deployment tooling unless explicitly introduced by a future amendment.
 
 ---
 
 # 5. Constitutional Authority Hierarchy
- 
+
 The following precedence SHALL apply whenever two artifacts conflict.
- 
-| Priority | Authority                            | Status                  |
-| -------- | ------------------------------------ | ----------------------- |
-| 1        | MEVIS Engineering Constitution (MEC) | Normative               |
-| 2        | [Product Vision](../product/Product%20Vision%20doc%20v1.0.md)                       | Intent Authority        |
-| 3        | Product Requirements Document (PRD)  | Functional Authority    |
-| 4        | Architecture Decision Records (ADR)  | Architectural Authority |
-| 5        | Implementation                       | Executable Authority    |
- 
+
+| Priority | Authority                                                     | Status                  |
+| -------- | ------------------------------------------------------------- | ----------------------- |
+| 1        | MEVIS Engineering Constitution (MEC)                          | Normative               |
+| 2        | [Product Vision](../product/Product%20Vision%20doc%20v1.0.md) | Intent Authority        |
+| 3        | Product Requirements Document (PRD)                           | Functional Authority    |
+| 4        | Architecture Decision Records (ADR)                           | Architectural Authority |
+| 5        | Implementation                                                | Executable Authority    |
+
 Lower-priority artifacts SHALL NOT contradict higher-priority artifacts.
- 
+
 Detailed architectural designs and reasoning pipelines are specified in the [Architecture Specification](../architecture/MEVIS%20Architecture%20Specification%20v1.0.md) and [AI Reasoning Specification](../reasoning/MEVIS%20AI%20Reasoning%20Specification%20v1.0.md).
 
 ---
@@ -227,10 +227,10 @@ Every constitutional requirement SHALL use the following format:
 
 Examples:
 
-* REQ-GOV-001
-* REQ-AI-014
-* REQ-DOM-022
-* REQ-MEM-011
+- REQ-GOV-001
+- REQ-AI-014
+- REQ-DOM-022
+- REQ-MEM-011
 
 Identifiers SHALL remain stable across revisions.
 
@@ -329,10 +329,10 @@ Failure to satisfy any mandatory requirement SHALL render the implementation non
 
 **Version 1.0.0**
 
-* Initial constitutional chapter established.
-* Defined authority hierarchy.
-* Established governance model.
-* Created constitutional invariants.
-* Introduced requirement identifier convention.
-* Created initial Open Decisions Register.
-* Defined compliance criteria.
+- Initial constitutional chapter established.
+- Defined authority hierarchy.
+- Established governance model.
+- Created constitutional invariants.
+- Introduced requirement identifier convention.
+- Created initial Open Decisions Register.
+- Defined compliance criteria.

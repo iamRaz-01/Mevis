@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+coverage
+.next
+.nuxt
+out
+package-lock.json
+*.log

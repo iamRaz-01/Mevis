@@ -4,13 +4,13 @@ Status: Draft
 Owner: MEVIS AI Architecture Group  
 Last Updated: 2026-07-18  
 Authority: Subordinate to [MEVIS Engineering Constitution](../engineering/MEVIS%20Product%20Constitution.md) and [Product Vision](../product/Product%20Vision%20doc%20v1.0.md)
- 
+
 ---
- 
+
 ## 1. Purpose
- 
+
 This specification defines the normative AI reasoning architecture for MEVIS.
- 
+
 It establishes the canonical cognitive loop, context schema, world-state semantics, policy and trust gates, decision graph requirements, memory behavior, multi-agent governance, evaluation harness, and simulation protocol. For platform services and data architecture, refer to the [Architecture Specification](../architecture/MEVIS%20Architecture%20Specification%20v1.0.md).
 
 ---
@@ -23,15 +23,15 @@ The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described
 
 ## 3. Constitutional Mapping
 
-| Invariant | Reasoning Requirement |
-|---|---|
-| INV-001 AI-native platform | Reasoning loop is first-class system behavior |
-| INV-002 Human override | All high-risk actions require explicit human decision |
-| INV-003 Augment, not replace humans | AI outputs are recommendations, never autonomous commands |
-| INV-004 Grounded evidence | Recommendation MUST include evidence references |
-| INV-005 Explainability | Decision graph and explanation payload are mandatory |
-| INV-006 Safety first | Policy and trust gates can block otherwise optimal actions |
-| INV-007 Continuous learning | Outcomes and overrides MUST update learning records |
+| Invariant                           | Reasoning Requirement                                      |
+| ----------------------------------- | ---------------------------------------------------------- |
+| INV-001 AI-native platform          | Reasoning loop is first-class system behavior              |
+| INV-002 Human override              | All high-risk actions require explicit human decision      |
+| INV-003 Augment, not replace humans | AI outputs are recommendations, never autonomous commands  |
+| INV-004 Grounded evidence           | Recommendation MUST include evidence references            |
+| INV-005 Explainability              | Decision graph and explanation payload are mandatory       |
+| INV-006 Safety first                | Policy and trust gates can block otherwise optimal actions |
+| INV-007 Continuous learning         | Outcomes and overrides MUST update learning records        |
 
 ---
 
@@ -57,20 +57,20 @@ flowchart TD
 
 ### 4.1 Stage Contracts
 
-| Stage | Input | Output |
-|---|---|---|
-| Observation | Raw events/signals | Normalized observation objects |
-| World State | Observations + prior state | Versioned world-state snapshot |
-| Situation Assessment | World state + context | Situation labels and severity |
-| Hypothesis Generation | Situation + evidence | Plausible scenario hypotheses |
-| Planning | Hypotheses + constraints | Candidate action plans |
-| Risk Analysis | Candidate plans | Risk vectors and impact estimates |
-| Policy Validation | Candidate plans + policy set | Allow/deny/needs-approval |
-| Trust Scoring | Evidence and quality signals | Trust score + release verdict |
-| Recommendation | Validated plans | Ranked action recommendations |
-| Explanation | Decision graph | Human-readable rationale payload |
-| Outcome Tracking | Human decision + field outcome | Resolution records |
-| Learning | Outcomes + eval records | Updated memory/knowledge artifacts |
+| Stage                 | Input                          | Output                             |
+| --------------------- | ------------------------------ | ---------------------------------- |
+| Observation           | Raw events/signals             | Normalized observation objects     |
+| World State           | Observations + prior state     | Versioned world-state snapshot     |
+| Situation Assessment  | World state + context          | Situation labels and severity      |
+| Hypothesis Generation | Situation + evidence           | Plausible scenario hypotheses      |
+| Planning              | Hypotheses + constraints       | Candidate action plans             |
+| Risk Analysis         | Candidate plans                | Risk vectors and impact estimates  |
+| Policy Validation     | Candidate plans + policy set   | Allow/deny/needs-approval          |
+| Trust Scoring         | Evidence and quality signals   | Trust score + release verdict      |
+| Recommendation        | Validated plans                | Ranked action recommendations      |
+| Explanation           | Decision graph                 | Human-readable rationale payload   |
+| Outcome Tracking      | Human decision + field outcome | Resolution records                 |
+| Learning              | Outcomes + eval records        | Updated memory/knowledge artifacts |
 
 ---
 
@@ -178,11 +178,11 @@ All AI reasoning components MUST consume the same context object.
 
 ### 8.1 Retrieval Pipeline
 
-1. Query rewrite and intent extraction  
-2. Metadata filter application  
-3. Hybrid retrieval (keyword + vector)  
-4. KG relation fetch  
-5. Re-ranking  
+1. Query rewrite and intent extraction
+2. Metadata filter application
+3. Hybrid retrieval (keyword + vector)
+4. KG relation fetch
+5. Re-ranking
 6. Citation and grounding package assembly
 
 ### 8.2 Grounding Rules
@@ -429,14 +429,14 @@ Audit logs MUST be immutable and queryable by incident and decision IDs.
 
 ## 19. Failure Modes and Required Behavior
 
-| Failure | Required Behavior |
-|---|---|
-| Missing context | Ask clarifying question or escalate |
-| Retrieval miss | Return low-confidence with explicit evidence gap |
-| Policy engine unavailable | Block recommendation release for high-risk flows |
-| Trust gate failure | Block and escalate |
-| Agent timeout | Deterministic fallback to orchestrator default policy |
-| Contradictory evidence | Surface uncertainty and alternatives |
+| Failure                   | Required Behavior                                     |
+| ------------------------- | ----------------------------------------------------- |
+| Missing context           | Ask clarifying question or escalate                   |
+| Retrieval miss            | Return low-confidence with explicit evidence gap      |
+| Policy engine unavailable | Block recommendation release for high-risk flows      |
+| Trust gate failure        | Block and escalate                                    |
+| Agent timeout             | Deterministic fallback to orchestrator default policy |
+| Contradictory evidence    | Surface uncertainty and alternatives                  |
 
 ---
 
@@ -458,4 +458,3 @@ A reasoning implementation is compliant with v1.0 only if it:
 - Schema changes MUST be backward compatible within minor versions.
 - Breaking changes require new major version and migration guide.
 - Policy, ontology, and prompt artifacts MUST be versioned independently.
-

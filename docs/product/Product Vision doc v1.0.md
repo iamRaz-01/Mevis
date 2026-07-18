@@ -7,20 +7,20 @@
 # 1. Document Purpose
 
 This document serves as the **single source of truth** for the MEVIS platform. All engineering implementation rules must conform to the [MEVIS Engineering Constitution](../engineering/MEVIS%20Product%20Constitution.md).
- 
+
 It defines:
- 
-* Why MEVIS exists.
-* The real problem it solves.
-* The philosophy behind the system.
-* The boundaries of the product.
-* The stakeholders.
-* The intelligence capabilities.
-* The expected behaviors.
-* The architectural direction.
- 
+
+- Why MEVIS exists.
+- The real problem it solves.
+- The philosophy behind the system.
+- The boundaries of the product.
+- The stakeholders.
+- The intelligence capabilities.
+- The expected behaviors.
+- The architectural direction.
+
 Every AI agent, engineer, designer, architect, and contributor should understand this document before implementing any feature.
- 
+
 If an implementation contradicts this vision, the implementation is considered incorrect.
 
 ---
@@ -53,12 +53,12 @@ Large-scale events do not fail because of a shortage of people.
 
 They fail because:
 
-* information is fragmented,
-* context is lost,
-* decisions are delayed,
-* communication is inconsistent,
-* knowledge remains static,
-* and human cognitive capacity cannot scale to operational complexity.
+- information is fragmented,
+- context is lost,
+- decisions are delayed,
+- communication is inconsistent,
+- knowledge remains static,
+- and human cognitive capacity cannot scale to operational complexity.
 
 The objective of MEVIS is to augment human cognition rather than replace human decision-making.
 
@@ -70,13 +70,13 @@ The objective of MEVIS is to augment human cognition rather than replace human d
 
 Today's volunteer ecosystem relies on:
 
-* PDF manuals
-* WhatsApp groups
-* Emails
-* Static SOP documents
-* Human memory
-* Radio communication
-* Multiple disconnected systems
+- PDF manuals
+- WhatsApp groups
+- Emails
+- Static SOP documents
+- Human memory
+- Radio communication
+- Multiple disconnected systems
 
 Knowledge exists.
 
@@ -88,30 +88,30 @@ Intelligence does not.
 
 Volunteers experience:
 
-* uncertainty
-* delayed responses
-* language barriers
-* confusion about SOPs
-* incident reporting delays
-* transportation uncertainty
-* heat-related fatigue
-* inconsistent guidance
+- uncertainty
+- delayed responses
+- language barriers
+- confusion about SOPs
+- incident reporting delays
+- transportation uncertainty
+- heat-related fatigue
+- inconsistent guidance
 
 Operations teams experience:
 
-* delayed situational awareness
-* fragmented reports
-* duplicated incidents
-* poor resource allocation
-* reactive decision-making
+- delayed situational awareness
+- fragmented reports
+- duplicated incidents
+- poor resource allocation
+- reactive decision-making
 
 Fans experience:
 
-* inconsistent assistance
-* navigation issues
-* longer queues
-* accessibility challenges
-* communication difficulties
+- inconsistent assistance
+- navigation issues
+- longer queues
+- accessibility challenges
+- communication difficulties
 
 ---
 
@@ -171,11 +171,11 @@ Explain Before Trust
 
 Every recommendation must include:
 
-* evidence
-* reasoning summary
-* confidence
-* assumptions
-* expected outcome
+- evidence
+- reasoning summary
+- confidence
+- assumptions
+- expected outcome
 
 ---
 
@@ -227,27 +227,27 @@ safety always wins.
 
 MEVIS is responsible for:
 
-* volunteer decision support
-* operational reasoning
-* contextual recommendations
-* multilingual assistance
-* incident intelligence
-* operational summaries
-* explainable AI
-* contextual SOP guidance
-* resource recommendation
-* knowledge retrieval
-* operational memory
+- volunteer decision support
+- operational reasoning
+- contextual recommendations
+- multilingual assistance
+- incident intelligence
+- operational summaries
+- explainable AI
+- contextual SOP guidance
+- resource recommendation
+- knowledge retrieval
+- operational memory
 
 MEVIS is NOT responsible for:
 
-* ticketing
-* payment
-* HR management
-* payroll
-* volunteer recruitment
-* infrastructure control
-* replacing emergency command
+- ticketing
+- payment
+- HR management
+- payroll
+- volunteer recruitment
+- infrastructure control
+- replacing emergency command
 
 ---
 
@@ -259,10 +259,10 @@ Volunteers
 
 Needs:
 
-* confidence
-* contextual guidance
-* multilingual communication
-* incident support
+- confidence
+- contextual guidance
+- multilingual communication
+- incident support
 
 ---
 
@@ -272,9 +272,9 @@ Operations Coordinators
 
 Needs:
 
-* situational awareness
-* operational intelligence
-* resource optimization
+- situational awareness
+- operational intelligence
+- resource optimization
 
 ---
 
@@ -402,30 +402,30 @@ Average time between incident detection and successful operational resolution.
 
 Operational
 
-* Incident response time
-* Resolution time
-* Escalation accuracy
-* Recommendation acceptance rate
+- Incident response time
+- Resolution time
+- Escalation accuracy
+- Recommendation acceptance rate
 
 Volunteer
 
-* Confidence score
-* Average task completion time
-* SOP lookup reduction
-* Training completion
+- Confidence score
+- Average task completion time
+- SOP lookup reduction
+- Training completion
 
 Fan
 
-* Assistance response time
-* Navigation success
-* Queue reduction
+- Assistance response time
+- Navigation success
+- Queue reduction
 
 AI
 
-* Groundedness
-* Hallucination rate
-* Explanation quality
-* Confidence calibration
+- Groundedness
+- Hallucination rate
+- Explanation quality
+- Confidence calibration
 
 ---
 
@@ -501,21 +501,21 @@ Learning
 
 The AI SHOULD:
 
-* retrieve knowledge
-* synthesize context
-* prioritize incidents
-* recommend actions
-* explain reasoning
-* summarize situations
-* detect operational patterns
+- retrieve knowledge
+- synthesize context
+- prioritize incidents
+- recommend actions
+- explain reasoning
+- summarize situations
+- detect operational patterns
 
 The AI MUST NOT:
 
-* fabricate information
-* override human authority
-* execute safety-critical actions autonomously
-* ignore SOPs
-* recommend unsupported actions
+- fabricate information
+- override human authority
+- execute safety-critical actions autonomously
+- ignore SOPs
+- recommend unsupported actions
 
 ---
 
@@ -543,15 +543,15 @@ Recommended action?
 
 MEVIS evolves from a volunteer intelligence platform into a reusable Cognitive Operations Platform for:
 
-* Olympic Games
-* Airports
-* Disaster response
-* Smart cities
-* Music festivals
-* Pilgrimages
-* Emergency command centers
-* Universities
-* Large conventions
+- Olympic Games
+- Airports
+- Disaster response
+- Smart cities
+- Music festivals
+- Pilgrimages
+- Emergency command centers
+- Universities
+- Large conventions
 
 ---
 

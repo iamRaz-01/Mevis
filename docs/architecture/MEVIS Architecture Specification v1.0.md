@@ -4,13 +4,13 @@ Status: Draft
 Owner: MEVIS Architecture Group  
 Last Updated: 2026-07-18  
 Authority: Subordinate to [MEVIS Engineering Constitution](../engineering/MEVIS%20Product%20Constitution.md) and [Product Vision](../product/Product%20Vision%20doc%20v1.0.md)
- 
+
 ---
- 
+
 ## 1. Purpose
- 
+
 This document defines the platform architecture for MEVIS as an AI-native operational intelligence system for mega-event volunteer operations.
- 
+
 It covers system boundaries, service decomposition, data architecture, API boundaries, event architecture, security controls, deployment topology, and evolution path from hackathon MVP to production. For AI reasoning behaviors, refer to the [AI Reasoning Specification](../reasoning/MEVIS%20AI%20Reasoning%20Specification%20v1.0.md).
 
 ---
@@ -103,33 +103,33 @@ flowchart LR
 
 ## 5. Logical Bounded Contexts
 
-| Context | Responsibility | Key Interfaces |
-|---|---|---|
-| Volunteer Experience | Querying support, action acknowledgement, multilingual UX | `/v1/assistant`, `/v1/actions` |
-| Operations Command | Incident triage, escalation, prioritization | `/v1/incidents`, `/v1/escalations` |
-| AI Intelligence | Orchestration, reasoning pipeline, recommendation assembly | `/v1/ai/recommend` |
-| Context Engine | Canonical context object construction | `/v1/context/assemble` |
-| Knowledge Layer | Ingestion, indexing, retrieval, citations | `/v1/knowledge/*` |
-| World State Layer | Live operational state model and diffs | `/v1/world-state/*` |
-| Policy & Trust | Policy validation and trust gating | `/v1/policy/validate`, `/v1/trust/score` |
-| Notifications | Push/SMS/WhatsApp delivery and retries | `/v1/notifications/*` |
-| Admin & Governance | Policies, thresholds, role mappings, model settings | `/v1/admin/*` |
-| Analytics & Learning | MTOR, quality metrics, learning loop | `/v1/analytics/*` |
+| Context              | Responsibility                                             | Key Interfaces                           |
+| -------------------- | ---------------------------------------------------------- | ---------------------------------------- |
+| Volunteer Experience | Querying support, action acknowledgement, multilingual UX  | `/v1/assistant`, `/v1/actions`           |
+| Operations Command   | Incident triage, escalation, prioritization                | `/v1/incidents`, `/v1/escalations`       |
+| AI Intelligence      | Orchestration, reasoning pipeline, recommendation assembly | `/v1/ai/recommend`                       |
+| Context Engine       | Canonical context object construction                      | `/v1/context/assemble`                   |
+| Knowledge Layer      | Ingestion, indexing, retrieval, citations                  | `/v1/knowledge/*`                        |
+| World State Layer    | Live operational state model and diffs                     | `/v1/world-state/*`                      |
+| Policy & Trust       | Policy validation and trust gating                         | `/v1/policy/validate`, `/v1/trust/score` |
+| Notifications        | Push/SMS/WhatsApp delivery and retries                     | `/v1/notifications/*`                    |
+| Admin & Governance   | Policies, thresholds, role mappings, model settings        | `/v1/admin/*`                            |
+| Analytics & Learning | MTOR, quality metrics, learning loop                       | `/v1/analytics/*`                        |
 
 ---
 
 ## 6. Core Data Architecture
 
-| Store | Purpose |
-|---|---|
+| Store                     | Purpose                                                  |
+| ------------------------- | -------------------------------------------------------- |
 | Operational DB (Postgres) | Source of truth for incidents, users, approvals, actions |
-| Vector DB | Semantic retrieval over SOPs, reports, memory |
-| Knowledge Graph | Stable relationship reasoning across entities |
-| Cache (Redis) | Low-latency context fragments, idempotency, rate limits |
-| Object Store | Raw documents and evidence artifacts |
-| Decision Graph Store | Immutable reasoning traces for audit/explainability |
-| Evaluation Store | Per-request quality and policy metrics |
-| Analytics Warehouse | MTOR and operational KPI reporting |
+| Vector DB                 | Semantic retrieval over SOPs, reports, memory            |
+| Knowledge Graph           | Stable relationship reasoning across entities            |
+| Cache (Redis)             | Low-latency context fragments, idempotency, rate limits  |
+| Object Store              | Raw documents and evidence artifacts                     |
+| Decision Graph Store      | Immutable reasoning traces for audit/explainability      |
+| Evaluation Store          | Per-request quality and policy metrics                   |
+| Analytics Warehouse       | MTOR and operational KPI reporting                       |
 
 ---
 
@@ -225,15 +225,15 @@ stateDiagram-v2
 
 ## 11. Architecture Decision Summary
 
-| ADR | Decision |
-|---|---|
-| ADR-001 | Context assembly is mandatory before reasoning |
+| ADR     | Decision                                                |
+| ------- | ------------------------------------------------------- |
+| ADR-001 | Context assembly is mandatory before reasoning          |
 | ADR-002 | Human approval is required for safety-impacting actions |
-| ADR-003 | Hybrid retrieval (vector + keyword + graph) |
-| ADR-004 | Decision graph is mandatory for every recommendation |
-| ADR-005 | Policy and trust are independent gates |
-| ADR-006 | Event-driven operational model |
-| ADR-007 | Modular monolith for MVP, service extraction later |
+| ADR-003 | Hybrid retrieval (vector + keyword + graph)             |
+| ADR-004 | Decision graph is mandatory for every recommendation    |
+| ADR-005 | Policy and trust are independent gates                  |
+| ADR-006 | Event-driven operational model                          |
+| ADR-007 | Modular monolith for MVP, service extraction later      |
 
 ---
 
@@ -262,4 +262,3 @@ stateDiagram-v2
 - Grounds recommendations in evidence
 - Enforces safety precedence
 - Supports explainability and learning loop
-

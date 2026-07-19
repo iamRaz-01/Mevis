@@ -601,3 +601,21 @@ export class ConversationMessageRepository extends RelationalRepository<Conversa
     super(db, "conversation_messages", ["id", "context_type", "context_id", "sender", "message", "timestamp"], "ConversationMessage");
   }
 }
+
+export interface OperationalAuditLogEntity extends Identifiable<string> {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  action_type: string;
+  previous_value: string | null;
+  new_value: string | null;
+  actor: string;
+  timestamp: string;
+  reason: string | null;
+}
+
+export class OperationalAuditLogRepository extends RelationalRepository<OperationalAuditLogEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "operational_audit_logs", ["id", "entity_type", "entity_id", "action_type", "previous_value", "new_value", "actor", "timestamp", "reason"], "OperationalAuditLog");
+  }
+}

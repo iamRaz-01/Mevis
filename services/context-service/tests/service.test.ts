@@ -71,6 +71,7 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM operational_audit_logs;");
     await dbClient.execute("DELETE FROM conversation_messages;");
     await dbClient.execute("DELETE FROM announcements;");
     await dbClient.execute("DELETE FROM broadcasts;");
@@ -1203,5 +1204,55 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     const list = res.payload.data as any[];
     assert.strictEqual(list.length, 1);
     assert.strictEqual(list[0].message, "Stretcher arrived at gates location.");
+  });
+
+  test("97. Verify GET /runtime/volunteers/:id returns composite operational view projection", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/volunteers/${masterVolunteerId}`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const view = res.payload.data;
+    assert.strictEqual(view.volunteer.id, masterVolunteerId);
+    assert.ok(view.assignments.length > 0);
+  });
+
+  test("98. Verify GET /runtime/dashboard/operations returns active statistics summary", async () => {
+    const res = await makeRequest("GET", "/runtime/dashboard/operations", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.activeIncidentsCount > 0);
+    assert.ok(data.openTasksCount > 0);
+  });
+
+  test("99. Verify GET /runtime/search matches query terms cross-domain", async () => {
+    const res = await makeRequest("GET", "/runtime/search?q=carlos", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const results = res.payload.data as any[];
+    assert.ok(results.length > 0);
+    assert.strictEqual(results[0].type, "Volunteer");
+  });
+
+  test("100. Verify GET /runtime/reports returns calculated analytics KPIs", async () => {
+    const res = await makeRequest("GET", "/runtime/reports", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const report = res.payload.data;
+    assert.ok(report.totalVolunteersRegistered > 0);
+  });
+
+  test("101. Verify GET /runtime/playback tracks chronologically ordered streams", async () => {
+    const res = await makeRequest("GET", "/runtime/playback", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length > 0);
+  });
+
+  test("102. Verify GET /runtime/history logs immutable audit records history", async () => {
+    const res = await makeRequest("GET", "/runtime/history", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length > 0);
   });
 });

@@ -43,6 +43,7 @@ import {
   BroadcastRepository,
   AnnouncementRepository,
   ConversationMessageRepository,
+  OperationalAuditLogRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -114,6 +115,13 @@ import { type Incident, type Assignment, type Task, type ResourceRequest, type A
 import { OperationalIntelligenceIntegrationOrchestrator } from "./integration/orchestrator";
 
 import { OperationalCommunicationOrchestrator } from "./communication/orchestrator";
+
+import { OperationalQueryEngine } from "./runtime/query-engine";
+import { DashboardEngine } from "./runtime/dashboard-engine";
+import { SearchEngine } from "./runtime/search-engine";
+import { AnalyticsEngine } from "./runtime/analytics-engine";
+import { PlaybackEngine } from "./runtime/playback-engine";
+import { AuditEngine } from "./runtime/audit-engine";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -413,6 +421,42 @@ const communicationOrchestrator = new OperationalCommunicationOrchestrator(
 );
 
 communicationOrchestrator.subscribeEvents();
+
+const auditLogRepo = new OperationalAuditLogRepository(dbClient);
+
+const runtimeQueryEngine = new OperationalQueryEngine(
+  volunteerRepo,
+  assignmentRepo,
+  attendanceRecordRepo,
+  taskRepo,
+  incidentRepo,
+  incidentTimelineRepo
+);
+
+const runtimeDashboardEngine = new DashboardEngine(
+  incidentRepo,
+  taskRepo,
+  resourceRepo,
+  attendanceRecordRepo
+);
+
+const runtimeSearchEngine = new SearchEngine(
+  volunteerRepo,
+  venueRepo,
+  incidentRepo,
+  taskRepo
+);
+
+const runtimeAnalyticsEngine = new AnalyticsEngine(
+  incidentRepo,
+  taskRepo,
+  volunteerRepo
+);
+
+const runtimePlaybackEngine = new PlaybackEngine(auditLogRepo);
+
+const runtimeAuditEngine = new AuditEngine(auditLogRepo);
+runtimeAuditEngine.subscribeEvents();
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -2410,6 +2454,154 @@ const server = http.createServer(async (req, res) => {
       const body = await readJson(req);
       const msg = await communicationOrchestrator.collaboration.postMessage("INCIDENT", segments[2], body.sender || "SYSTEM", body.message);
       return sendJson(res, 200, msg);
+    }
+
+    // GET /runtime/volunteers - Lists volunteer operational views
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "volunteers" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const volunteers = await volunteerRepo.findAll();
+      const list = [];
+      for (const v of volunteers) {
+        list.push(await runtimeQueryEngine.getVolunteerOperationalView(v.id));
+      }
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/volunteers/:id - Gets single volunteer operational view
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "volunteers" && segments[2] && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const view = await runtimeQueryEngine.getVolunteerOperationalView(segments[2]);
+      return sendJson(res, 200, view);
+    }
+
+    // GET /runtime/incidents - Lists incidents operational views
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "incidents" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const incidents = await incidentRepo.findAll();
+      const list = [];
+      for (const i of incidents) {
+        list.push(await runtimeQueryEngine.getIncidentOperationalView(i.id));
+      }
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/resources - Lists resources
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "resources" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await resourceRepo.findAll();
+      return sendJson(res, 200, rows);
+    }
+
+    // GET /runtime/venues - Lists venues
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "venues" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await venueRepo.findAll();
+      return sendJson(res, 200, rows);
+    }
+
+    // GET /runtime/dashboard/operations - Operations Dashboard view
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "dashboard" && segments[2] === "operations" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const data = await runtimeDashboardEngine.getOperationsDashboard();
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/dashboard/medical - Medical Dashboard view
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "dashboard" && segments[2] === "medical" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const data = await runtimeDashboardEngine.getMedicalDashboard();
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/dashboard/security - Security Dashboard view
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "dashboard" && segments[2] === "security" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const data = await runtimeDashboardEngine.getSecurityDashboard();
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/search - Cross-domain search engine
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "search" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const query = new URL(req.url || "", `http://${req.headers.host}`).searchParams.get("q") || "";
+      const results = await runtimeSearchEngine.search(query);
+      return sendJson(res, 200, results);
+    }
+
+    // GET /runtime/history - Immutable audit logs
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "history" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await auditLogRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        entityType: row.entity_type,
+        entityId: row.entity_id,
+        actionType: row.action_type,
+        previousValue: row.previous_value,
+        newValue: row.new_value,
+        actor: row.actor,
+        timestamp: row.timestamp,
+        reason: row.reason,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/timeline - Lists general incident timelines
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "timeline" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await incidentTimelineRepo.findAll();
+      return sendJson(res, 200, rows);
+    }
+
+    // GET /runtime/reports - Analytics KPIs report
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "reports" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const kpis = await runtimeAnalyticsEngine.calculateKPIs();
+      return sendJson(res, 200, kpis);
+    }
+
+    // GET /runtime/playback - Replays chronologically sorted audit logs stream
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "playback" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const stream = await runtimePlaybackEngine.getPlaybackStream();
+      const list = stream.map((row: any) => ({
+        id: row.id,
+        entityType: row.entity_type,
+        entityId: row.entity_id,
+        actionType: row.action_type,
+        previousValue: row.previous_value,
+        newValue: row.new_value,
+        actor: row.actor,
+        timestamp: row.timestamp,
+        reason: row.reason,
+      }));
+      return sendJson(res, 200, list);
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

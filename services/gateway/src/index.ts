@@ -1,11 +1,9 @@
 import http from 'node:http';
-import { createEnvelope, extractContext } from '@mevis/platform-communication';
 import {
-  EdgeMiddleware,
-  EdgeRouter,
-  RequestValidator,
-  type RequestSchema,
-} from '@mevis/platform-edge-runtime';
+  createEnvelope,
+  extractContext,
+  contextStorage,
+} from '@mevis/platform-communication';
 
 const PORT = parseInt(process.env['PORT'] || '8000', 10);
 

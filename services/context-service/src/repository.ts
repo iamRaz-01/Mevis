@@ -540,3 +540,64 @@ export class IntegrationRetryQueueRepository extends RelationalRepository<Integr
     super(db, "integration_retry_queue", ["id", "event_id", "retry_count", "next_attempt"], "IntegrationRetryQueue");
   }
 }
+
+export interface NotificationEntity extends Identifiable<string> {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  source_event: string;
+  recipient: string;
+  timestamp: string;
+  delivery_state: string;
+  acknowledged_at: string | null;
+}
+
+export class NotificationRepository extends RelationalRepository<NotificationEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "notifications", ["id", "title", "body", "priority", "source_event", "recipient", "timestamp", "delivery_state", "acknowledged_at"], "Notification");
+  }
+}
+
+export interface BroadcastEntity extends Identifiable<string> {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  audience: string;
+  timestamp: string;
+}
+
+export class BroadcastRepository extends RelationalRepository<BroadcastEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "broadcasts", ["id", "title", "body", "priority", "audience", "timestamp"], "Broadcast");
+  }
+}
+
+export interface AnnouncementEntity extends Identifiable<string> {
+  id: string;
+  title: string;
+  body: string;
+  timestamp: string;
+}
+
+export class AnnouncementRepository extends RelationalRepository<AnnouncementEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "announcements", ["id", "title", "body", "timestamp"], "Announcement");
+  }
+}
+
+export interface ConversationMessageEntity extends Identifiable<string> {
+  id: string;
+  context_type: string;
+  context_id: string;
+  sender: string;
+  message: string;
+  timestamp: string;
+}
+
+export class ConversationMessageRepository extends RelationalRepository<ConversationMessageEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "conversation_messages", ["id", "context_type", "context_id", "sender", "message", "timestamp"], "ConversationMessage");
+  }
+}

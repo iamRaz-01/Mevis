@@ -39,6 +39,10 @@ import {
   AttendanceRecordRepository,
   IntegrationEventLogRepository,
   IntegrationRetryQueueRepository,
+  NotificationRepository,
+  BroadcastRepository,
+  AnnouncementRepository,
+  ConversationMessageRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -108,6 +112,8 @@ import { BusinessWorkflowOrchestrator } from "./workflows/orchestrator";
 import { type Incident, type Assignment, type Task, type ResourceRequest, type AttendanceRecord } from "./workflows/context";
 
 import { OperationalIntelligenceIntegrationOrchestrator } from "./integration/orchestrator";
+
+import { OperationalCommunicationOrchestrator } from "./communication/orchestrator";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -394,6 +400,19 @@ const integrationOrchestrator = new OperationalIntelligenceIntegrationOrchestrat
 );
 
 integrationOrchestrator.subscribeEvents();
+
+const notificationRepo = new NotificationRepository(dbClient);
+const broadcastRepo = new BroadcastRepository(dbClient);
+const announcementRepo = new AnnouncementRepository(dbClient);
+const conversationMessageRepo = new ConversationMessageRepository(dbClient);
+
+const communicationOrchestrator = new OperationalCommunicationOrchestrator(
+  notificationRepo,
+  broadcastRepo,
+  conversationMessageRepo
+);
+
+communicationOrchestrator.subscribeEvents();
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -2231,6 +2250,166 @@ const server = http.createServer(async (req, res) => {
       }
       await integrationOrchestrator.replayEvent(eventId);
       return sendJson(res, 200, { success: true });
+    }
+
+    // GET /api/notifications - Lists personal notifications
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "notifications" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await notificationRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        priority: row.priority,
+        sourceEvent: row.source_event,
+        recipient: row.recipient,
+        timestamp: row.timestamp,
+        deliveryState: row.delivery_state,
+        acknowledgedAt: row.acknowledged_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/notifications/:id - Details of a single notification
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "notifications" && segments[2] && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const row = await notificationRepo.findById(segments[2]);
+      if (!row) {
+        return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Notification not found." }]);
+      }
+      return sendJson(res, 200, {
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        priority: row.priority,
+        sourceEvent: row.source_event,
+        recipient: row.recipient,
+        timestamp: row.timestamp,
+        deliveryState: row.delivery_state,
+        acknowledgedAt: row.acknowledged_at,
+      });
+    }
+
+    // POST /api/notifications/read - Marks notification as READ
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "notifications" && segments[2] === "read" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const notificationId = body.notificationId;
+      if (!notificationId) {
+        return sendJson(res, 400, undefined, [{ code: "BAD_REQUEST", message: "Missing notificationId." }]);
+      }
+      await communicationOrchestrator.notifications.markAsRead(notificationId);
+      return sendJson(res, 200, { success: true });
+    }
+
+    // POST /api/notifications/acknowledge - Acknowledges notification
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "notifications" && segments[2] === "acknowledge" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const notificationId = body.notificationId;
+      if (!notificationId) {
+        return sendJson(res, 400, undefined, [{ code: "BAD_REQUEST", message: "Missing notificationId." }]);
+      }
+      await communicationOrchestrator.notifications.acknowledge(notificationId);
+      return sendJson(res, 200, { success: true });
+    }
+
+    // GET /api/broadcasts - Lists broadcasts
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "broadcasts" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await broadcastRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        priority: row.priority,
+        audience: row.audience,
+        timestamp: row.timestamp,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/broadcasts - Publishes broadcast/alert
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "broadcasts" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const { title, body: msgBody, priority, audience, isEmergency } = body;
+      if (!title || !msgBody) {
+        return sendJson(res, 400, undefined, [{ code: "BAD_REQUEST", message: "Missing title or body." }]);
+      }
+      
+      let broadcast;
+      if (isEmergency) {
+        broadcast = await communicationOrchestrator.alerts.triggerEmergencyAlert(title, msgBody);
+      } else {
+        broadcast = await communicationOrchestrator.broadcasts.publishBroadcast(title, msgBody, priority || "MEDIUM", audience || "ALL");
+      }
+      return sendJson(res, 200, broadcast);
+    }
+
+    // GET /api/announcements - Lists announcements
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "announcements" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await announcementRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        timestamp: row.timestamp,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/tasks/:id/messages - Lists chat messages for a task
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "tasks" && segments[2] && segments[3] === "messages" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await communicationOrchestrator.collaboration.getMessagesByContext("TASK", segments[2]);
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/tasks/:id/messages - Posts a comment to a task
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "tasks" && segments[2] && segments[3] === "messages" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const msg = await communicationOrchestrator.collaboration.postMessage("TASK", segments[2], body.sender || "SYSTEM", body.message);
+      return sendJson(res, 200, msg);
+    }
+
+    // GET /api/incidents/:id/messages - Lists chat messages for an incident
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "incidents" && segments[2] && segments[3] === "messages" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await communicationOrchestrator.collaboration.getMessagesByContext("INCIDENT", segments[2]);
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/incidents/:id/messages - Posts a comment to an incident
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "incidents" && segments[2] && segments[3] === "messages" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const msg = await communicationOrchestrator.collaboration.postMessage("INCIDENT", segments[2], body.sender || "SYSTEM", body.message);
+      return sendJson(res, 200, msg);
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

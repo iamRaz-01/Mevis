@@ -71,6 +71,10 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM conversation_messages;");
+    await dbClient.execute("DELETE FROM announcements;");
+    await dbClient.execute("DELETE FROM broadcasts;");
+    await dbClient.execute("DELETE FROM notifications;");
     await dbClient.execute("DELETE FROM integration_retry_queue;");
     await dbClient.execute("DELETE FROM integration_event_logs;");
     await dbClient.execute("DELETE FROM attendance_records;");
@@ -1125,5 +1129,79 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     );
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.payload.data.success, true);
+  });
+
+  let testNotificationId: string;
+
+  test("91. Verify GET /api/notifications returns logged notifications list", async () => {
+    const res = await makeRequest("GET", "/api/notifications", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length > 0);
+    testNotificationId = list[0].id;
+  });
+
+  test("92. Verify POST /api/notifications/read marks notification as read", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/notifications/read",
+      { notificationId: testNotificationId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.success, true);
+  });
+
+  test("93. Verify POST /api/notifications/acknowledge transitions to acknowledged status", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/notifications/acknowledge",
+      { notificationId: testNotificationId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.success, true);
+  });
+
+  test("94. Verify POST /api/broadcasts with emergency triggers alert", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/broadcasts",
+      {
+        title: "Evacuation Alert",
+        body: "Please evacuate Gate A1 immediately.",
+        isEmergency: true,
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.priority, "CRITICAL");
+  });
+
+  test("95. Verify POST /api/incidents/:id/messages posts contextual discussion messages", async () => {
+    const res = await makeRequest(
+      "POST",
+      `/api/incidents/${testIncidentId}/messages`,
+      {
+        sender: "VOL-6EC4837A",
+        message: "Stretcher arrived at gates location.",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.sender, "VOL-6EC4837A");
+  });
+
+  test("96. Verify GET /api/incidents/:id/messages retrieves discussion thread logs", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/api/incidents/${testIncidentId}/messages`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 1);
+    assert.strictEqual(list[0].message, "Stretcher arrived at gates location.");
   });
 });

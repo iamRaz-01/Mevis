@@ -71,6 +71,12 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM attendance_records;");
+    await dbClient.execute("DELETE FROM assignments;");
+    await dbClient.execute("DELETE FROM incident_timelines;");
+    await dbClient.execute("DELETE FROM tasks;");
+    await dbClient.execute("DELETE FROM resource_requests;");
+    await dbClient.execute("DELETE FROM incidents;");
     await dbClient.execute("DELETE FROM volunteers;");
     await dbClient.execute("DELETE FROM venue_gates;");
     await dbClient.execute("DELETE FROM venue_zones;");
@@ -941,5 +947,152 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     const resOrganizations = await makeRequest("GET", "/api/organizations", undefined, { "x-actor-role": "ROLE_USER" });
     assert.strictEqual(resOrganizations.status, 200);
     assert.ok(resOrganizations.payload.data.length > 0);
+  });
+
+  let testIncidentId: string;
+  let testAssignmentId: string;
+
+  test("77. Verify POST /api/incidents creates a new incident", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/incidents",
+      {
+        severity: "CRITICAL",
+        location: "Gate 4 Entrance",
+        description: "Spectator collapsed, unconscious but breathing.",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const inc = res.payload.data;
+    assert.ok(inc.id.startsWith("INC-"));
+    assert.strictEqual(inc.status, "CREATED");
+    testIncidentId = inc.id;
+  });
+
+  test("78. Verify PUT /api/incidents/:id transitions incident status", async () => {
+    const res = await makeRequest(
+      "PUT",
+      `/api/incidents/${testIncidentId}`,
+      { status: "ACKNOWLEDGED" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const inc = res.payload.data;
+    assert.strictEqual(inc.status, "ACKNOWLEDGED");
+  });
+
+  test("79. Verify GET /api/incidents/:id retrieves details and timeline entries", async () => {
+    const res = await makeRequest("GET", `/api/incidents/${testIncidentId}`, undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const inc = res.payload.data;
+    assert.strictEqual(inc.id, testIncidentId);
+    assert.ok(inc.timeline.length > 0);
+  });
+
+  test("80. Verify POST /api/assignments creates a volunteer assignment", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/assignments",
+      {
+        assigneeId: masterVolunteerId,
+        targetId: testIncidentId,
+        reason: "Dispatching volunteer to Gates entrance.",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const asn = res.payload.data;
+    assert.ok(asn.id.startsWith("ASN-"));
+    testAssignmentId = asn.id;
+  });
+
+  test("81. Verify POST /api/assignments fails under exclusivity constraints", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/assignments",
+      {
+        assigneeId: masterVolunteerId,
+        targetId: "INC-OTHER",
+        reason: "Overlapping request.",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 500);
+  });
+
+  test("82. Verify POST /api/tasks creates a task", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/tasks",
+      {
+        title: "Spectator Guidance",
+        description: "Direct arriving spectators to Gate 4 seats.",
+        priority: "HIGH",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const t = res.payload.data;
+    assert.ok(t.id.startsWith("TSK-"));
+  });
+
+  test("83. Verify POST /api/resource-requests checkout allocation logs", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/resource-requests",
+      {
+        resourceId: "RES-01",
+        requester: "Lead Medic Coordinator",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const reqObj = res.payload.data;
+    assert.ok(reqObj.id.startsWith("REQ-"));
+  });
+
+  test("84. Verify POST /api/attendance/check-in checks in a volunteer", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/attendance/check-in",
+      { volunteerId: masterVolunteerId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const record = res.payload.data;
+    assert.strictEqual(record.status, "CHECKED_IN");
+  });
+
+  test("85. Verify duplicate check-in fails validation", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/attendance/check-in",
+      { volunteerId: masterVolunteerId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 500);
+  });
+
+  test("86. Verify POST /api/attendance/check-out checks out volunteer", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/attendance/check-out",
+      { volunteerId: masterVolunteerId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const record = res.payload.data;
+    assert.strictEqual(record.status, "CHECKED_OUT");
+  });
+
+  test("87. Verify check-out without checking in fails validation", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/attendance/check-out",
+      { volunteerId: masterVolunteerId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 500);
   });
 });

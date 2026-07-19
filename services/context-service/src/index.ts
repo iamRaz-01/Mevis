@@ -31,6 +31,12 @@ import {
   TeamRepository,
   VolunteerRepository,
   ResourceRepository,
+  IncidentRepository,
+  IncidentTimelineRepository,
+  AssignmentRepository,
+  TaskRepository,
+  ResourceRequestRepository,
+  AttendanceRecordRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -95,6 +101,9 @@ import { type DecisionRuntimeState, type DecisionLifecycleState } from "./runtim
 
 import { OperationalRegistry, type VolunteerRepoPort } from "./operations/registry";
 import { type Volunteer, type Venue, type Resource, type Team, type Organization } from "./operations/context";
+
+import { BusinessWorkflowOrchestrator } from "./workflows/orchestrator";
+import { type Incident, type Assignment, type Task, type ResourceRequest, type AttendanceRecord } from "./workflows/context";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -352,6 +361,22 @@ const operationalRegistry = new OperationalRegistry(
   teamRepo,
   organizationRepo,
   resourceRepo
+);
+
+const incidentRepo = new IncidentRepository(dbClient);
+const incidentTimelineRepo = new IncidentTimelineRepository(dbClient);
+const assignmentRepo = new AssignmentRepository(dbClient);
+const taskRepo = new TaskRepository(dbClient);
+const resourceRequestRepo = new ResourceRequestRepository(dbClient);
+const attendanceRecordRepo = new AttendanceRecordRepository(dbClient);
+
+const businessWorkflowOrchestrator = new BusinessWorkflowOrchestrator(
+  incidentRepo,
+  incidentTimelineRepo,
+  assignmentRepo,
+  taskRepo,
+  resourceRequestRepo,
+  attendanceRecordRepo
 );
 
 // Helper to write JSON HTTP responses
@@ -1958,6 +1983,178 @@ const server = http.createServer(async (req, res) => {
       }
 
       return sendJson(res, 200, list);
+    }
+
+    // POST /api/incidents - Create a new incident
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "incidents" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const inc = await businessWorkflowOrchestrator.createIncident(body.severity, body.location, body.description);
+      return sendJson(res, 200, inc);
+    }
+
+    // PUT /api/incidents/:id - Transition incident status
+    if (req.method === "PUT" && segments[0] === "api" && segments[1] === "incidents" && segments[2] && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const id = segments[2];
+      const body = await readJson(req);
+      const inc = await businessWorkflowOrchestrator.transitionIncident(id, body.status);
+      return sendJson(res, 200, inc);
+    }
+
+    // GET /api/incidents/:id - Retrieve incident details
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "incidents" && segments[2] && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const id = segments[2];
+      const row = await incidentRepo.findById(id);
+      if (!row) {
+        return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: `Incident "${id}" not found.` }]);
+      }
+      const timelineRows = await incidentTimelineRepo.findAll();
+      const timeline = timelineRows.filter((r: any) => r.incident_id === id).map((r: any) => ({
+        id: r.id,
+        incidentId: r.incident_id,
+        eventType: r.event_type,
+        message: r.message,
+        timestamp: r.timestamp,
+      }));
+      return sendJson(res, 200, {
+        id: row.id,
+        severity: row.severity,
+        location: row.location,
+        status: row.status,
+        description: row.description,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        timeline,
+      });
+    }
+
+    // GET /api/incidents - List active incidents
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "incidents" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await incidentRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        severity: row.severity,
+        location: row.location,
+        status: row.status,
+        description: row.description,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/assignments - Create a new assignment
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "assignments" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const asn = await businessWorkflowOrchestrator.createAssignment(body.assigneeId, body.targetId, body.reason);
+      return sendJson(res, 200, asn);
+    }
+
+    // GET /api/assignments - List assignments
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "assignments" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await assignmentRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        assigneeId: row.assignee_id,
+        targetId: row.target_id,
+        reason: row.reason,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/tasks - Create a task
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "tasks" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const t = await businessWorkflowOrchestrator.createTask(body.title, body.description, body.priority);
+      return sendJson(res, 200, t);
+    }
+
+    // GET /api/tasks - List tasks
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "tasks" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await taskRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        priority: row.priority,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/resource-requests - Create a resource request
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "resource-requests" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const reqObj = await businessWorkflowOrchestrator.createResourceRequest(body.resourceId, body.requester);
+      return sendJson(res, 200, reqObj);
+    }
+
+    // GET /api/resource-requests - List resource requests
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "resource-requests" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await resourceRequestRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        resourceId: row.resource_id,
+        status: row.status,
+        requester: row.requester,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/attendance/check-in - Registers check-in attendance
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "attendance" && segments[2] === "check-in" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const record = await businessWorkflowOrchestrator.checkInVolunteer(body.volunteerId);
+      return sendJson(res, 200, record);
+    }
+
+    // POST /api/attendance/check-out - Registers check-out attendance
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "attendance" && segments[2] === "check-out" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const record = await businessWorkflowOrchestrator.checkOutVolunteer(body.volunteerId);
+      return sendJson(res, 200, record);
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

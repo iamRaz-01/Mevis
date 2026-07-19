@@ -417,3 +417,98 @@ export class ResourceRepository extends RelationalRepository<ResourceEntity, str
     super(db, "resources", ["id", "name", "category", "serial_number", "capabilities_json", "created_at"], "Resource");
   }
 }
+
+export interface IncidentEntity extends Identifiable<string> {
+  id: string;
+  severity: string;
+  location: string;
+  status: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export class IncidentRepository extends RelationalRepository<IncidentEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "incidents", ["id", "severity", "location", "status", "description", "created_at", "updated_at"], "Incident");
+  }
+}
+
+export interface IncidentTimelineEntity extends Identifiable<number> {
+  id: number;
+  incident_id: string;
+  event_type: string;
+  message: string;
+  timestamp: string;
+}
+
+export class IncidentTimelineRepository extends RelationalRepository<IncidentTimelineEntity, number> {
+  constructor(db: DatabaseClient) {
+    super(db, "incident_timelines", ["id", "incident_id", "event_type", "message", "timestamp"], "IncidentTimeline");
+  }
+}
+
+export interface AssignmentEntity extends Identifiable<string> {
+  id: string;
+  assignee_id: string;
+  target_id: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export class AssignmentRepository extends RelationalRepository<AssignmentEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "assignments", ["id", "assignee_id", "target_id", "reason", "status", "created_at", "updated_at"], "Assignment");
+  }
+}
+
+export interface TaskEntity extends Identifiable<string> {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export class TaskRepository extends RelationalRepository<TaskEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "tasks", ["id", "title", "description", "status", "priority", "created_at", "updated_at"], "Task");
+  }
+}
+
+export interface ResourceRequestEntity extends Identifiable<string> {
+  id: string;
+  resource_id: string;
+  status: string;
+  requester: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export class ResourceRequestRepository extends RelationalRepository<ResourceRequestEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "resource_requests", ["id", "resource_id", "status", "requester", "created_at", "updated_at"], "ResourceRequest");
+  }
+}
+
+export interface AttendanceRecordEntity extends Identifiable<string> {
+  id: string;
+  volunteer_id: string;
+  status: string;
+  timestamp: string;
+}
+
+export class AttendanceRecordRepository extends RelationalRepository<AttendanceRecordEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "attendance_records", ["id", "volunteer_id", "status", "timestamp"], "AttendanceRecord");
+  }
+
+  async delete(id: string): Promise<void> {
+    const sql = `DELETE FROM ${this.tableName} WHERE id = ?;`;
+    await this.db.execute(sql, [id]);
+  }
+}

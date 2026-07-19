@@ -92,6 +92,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock medical SOP, weather playbooks, and volunteer guidelines
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Architecture, taxonomy, lifecycles, and relationship maps
+├── knowledge-ingestion/ # Canonical knowledge processing pipeline and chunk segments
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock medical SOP, weather hazard, and policy ingestion audits
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Processing stages, chunking flow, and metadata Mermaid charts
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

@@ -1,0 +1,8 @@
+graph TD
+    raw[Raw Ingress Document] --> validate{Ingress check}
+    validate -- "Fail" --> reject[Reject: Raise log audit error]
+    validate -- "Pass" --> pipeline[Processing Ingestion Pipeline]
+    
+    pipeline --> quality{Final quality audit}
+    quality -- "Fail" --> reject
+    quality -- "Pass" --> publish[Authoritative Repository]

@@ -1,0 +1,21 @@
+# MEVIS Ingestion Pipeline Example
+# Represents a processed volunteer handbook chunk object.
+
+chunk_payload:
+  chunk_id: 'kn_volunteer_handbook_03_chunk_02'
+  parent_asset_id: 'kn_volunteer_handbook_03'
+  content_text: 'Register volunteer check-in coordinates. Request rest break intervals if fatigue metrics exceed bounds.'
+  provenance:
+    source_document: 'Volunteer_Steward_Handbook.docx'
+    section: 'Section 3.4: Rest Breaks'
+
+ingestion_audit:
+  source_file: 'Volunteer_Steward_Handbook.docx'
+  source_type: 'GuidelineDocument'
+  stages_completed:
+    - 'validation'
+    - 'parsing'
+    - 'cleaning'
+    - 'normalization'
+    - 'chunking'
+    - 'metadata_extraction'

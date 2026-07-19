@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Ingestion Pipeline Schema",
+  "type": "object",
+  "properties": {
+    "source_file": { "type": "string" },
+    "source_type": { "type": "string" },
+    "stages_completed": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["source_file", "source_type", "stages_completed"]
+}

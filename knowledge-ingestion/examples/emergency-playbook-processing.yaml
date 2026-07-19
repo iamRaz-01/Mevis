@@ -1,0 +1,21 @@
+# MEVIS Ingestion Pipeline Example
+# Represents a processed emergency playbook chunk object.
+
+chunk_payload:
+  chunk_id: 'kn_emergency_playbook_02_chunk_01'
+  parent_asset_id: 'kn_emergency_playbook_02'
+  content_text: 'Monitor lightning strikes within 5km radius. Open all emergency gate doors.'
+  provenance:
+    source_document: 'Lightning_Hazard_Evacuation_Playbook.pdf'
+    section: 'Section 1.2: General Evacuation Routing'
+
+ingestion_audit:
+  source_file: 'Lightning_Hazard_Evacuation_Playbook.pdf'
+  source_type: 'EmergencyPlaybook'
+  stages_completed:
+    - 'validation'
+    - 'parsing'
+    - 'cleaning'
+    - 'normalization'
+    - 'chunking'
+    - 'metadata_extraction'

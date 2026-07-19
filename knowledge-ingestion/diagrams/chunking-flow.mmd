@@ -1,0 +1,7 @@
+flowchart TD
+    text[Normalized Text Document] --> boundary{Detect Semantic Boundaries}
+    boundary -- "SOP Step list" --> split[Group step lists]
+    boundary -- "Header Section" --> split
+    
+    split --> trace[Inherit Parent Metadata]
+    trace --> build[Publish Knowledge Chunks]

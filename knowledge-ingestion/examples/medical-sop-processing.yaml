@@ -1,0 +1,21 @@
+# MEVIS Ingestion Pipeline Example
+# Represents a processed medical SOP chunk object.
+
+chunk_payload:
+  chunk_id: 'kn_medical_sop_01_chunk_01'
+  parent_asset_id: 'kn_medical_sop_01'
+  content_text: 'Dispatch nearest volunteer certified in CPR. Retrieve AED from Zone medical cabinet.'
+  provenance:
+    source_document: 'Cardiac_Emergency_Response_SOP.pdf'
+    section: 'Section 2.1: Defibrillator Deployment'
+
+ingestion_audit:
+  source_file: 'Cardiac_Emergency_Response_SOP.pdf'
+  source_type: 'StandardOperatingProcedure'
+  stages_completed:
+    - 'validation'
+    - 'parsing'
+    - 'cleaning'
+    - 'normalization'
+    - 'chunking'
+    - 'metadata_extraction'

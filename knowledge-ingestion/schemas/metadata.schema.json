@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Chunk Metadata Schema",
+  "type": "object",
+  "properties": {
+    "chunk_id": { "type": "string" },
+    "parent_asset_id": { "type": "string" },
+    "scope_domain": { "type": "string" }
+  },
+  "required": ["chunk_id", "parent_asset_id", "scope_domain"]
+}

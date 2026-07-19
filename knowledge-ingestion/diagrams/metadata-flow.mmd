@@ -1,0 +1,4 @@
+graph LR
+    source[Document Source Metadata] -->|Inherits owner & version| segment[Chunk Knowledge Object]
+    chunk[Content chunk text] -->|Extracts step indicators| segment
+    segment -->|Compiles metadata index| db[Authoritative Repository Index]

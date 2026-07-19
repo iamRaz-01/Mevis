@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Received : raw file uploaded
+    Received --> Validated : metadata audit passed
+    Validated --> Parsed : content parsed
+    Parsed --> Segmented : chunks created
+    Segmented --> Available : validated and published
+    
+    Available --> [*]

@@ -1,0 +1,9 @@
+flowchart TD
+    doc[Raw Document Source] --> val[Validation checks]
+    val --> parse[Content parser]
+    parse --> clean[Noise removal cleaning]
+    clean --> norm[Ubiquitous terminology normalization]
+    norm --> chunk[Semantic segment chunker]
+    chunk --> meta[Metadata index enrichment]
+    meta --> audit[Final validation audit]
+    audit --> publish[Publish Knowledge Objects]

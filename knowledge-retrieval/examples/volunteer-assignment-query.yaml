@@ -1,0 +1,17 @@
+# MEVIS Retrieval Example
+# Represents query requesting volunteer rest guidelines.
+
+retrieval_request:
+  query_text: 'volunteer steward shift rest break limits'
+  context_scope: 'ShiftPlanning'
+  filters:
+    domain: 'Volunteer'
+    min_trust: 0.80
+
+evidence_package:
+  package_id: 'pkg_retrieval_vol_105'
+  citations:
+    - chunk_id: 'kn_volunteer_handbook_03_chunk_02'
+      parent_asset_id: 'kn_volunteer_handbook_03'
+      text: 'Register volunteer check-in coordinates. Request rest break intervals if fatigue metrics exceed bounds.'
+      relevance_rank: 1

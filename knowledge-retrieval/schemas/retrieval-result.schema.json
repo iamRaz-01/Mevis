@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Retrieval Result Summary Schema",
+  "type": "object",
+  "properties": {
+    "request_id": { "type": "string" },
+    "duration_ms": { "type": "number" },
+    "candidates_found": { "type": "integer" }
+  },
+  "required": ["request_id", "duration_ms", "candidates_found"]
+}

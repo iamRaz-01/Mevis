@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> Requested : query intent submitted
+    Requested --> Retrieved : candidate chunks parsed
+    Retrieved --> Ranked : relevance sorting active
+    Ranked --> Selected : Evidence Package published
+    
+    Selected --> [*]

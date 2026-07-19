@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Evidence Package Schema",
+  "type": "object",
+  "properties": {
+    "package_id": { "type": "string" },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "chunk_id": { "type": "string" },
+          "parent_asset_id": { "type": "string" },
+          "text": { "type": "string" },
+          "relevance_rank": { "type": "integer" }
+        },
+        "required": ["chunk_id", "parent_asset_id", "text", "relevance_rank"]
+      }
+    }
+  },
+  "required": ["package_id", "citations"]
+}

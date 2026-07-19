@@ -1,0 +1,8 @@
+flowchart TD
+    in[Normalized Query] --> sem[Semantic matching]
+    in --> lex[Lexical token check]
+    
+    sem --> merge{Hybrid merger}
+    lex --> merge
+    
+    merge --> out[Sorted candidate matches list]

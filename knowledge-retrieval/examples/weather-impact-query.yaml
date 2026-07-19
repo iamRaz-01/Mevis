@@ -1,0 +1,17 @@
+# MEVIS Retrieval Example
+# Represents query requesting weather hazard evacuation steps.
+
+retrieval_request:
+  query_text: 'lightning hazard evacuations step routing'
+  context_scope: 'EmergencyResponse'
+  filters:
+    domain: 'Emergency'
+    min_trust: 0.95
+
+evidence_package:
+  package_id: 'pkg_retrieval_weather_003'
+  citations:
+    - chunk_id: 'kn_emergency_playbook_02_chunk_01'
+      parent_asset_id: 'kn_emergency_playbook_02'
+      text: 'Monitor lightning strikes within 5km radius. Open all emergency gate doors.'
+      relevance_rank: 1

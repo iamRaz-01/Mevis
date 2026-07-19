@@ -1,0 +1,5 @@
+flowchart TD
+    list[Sorted candidates list] --> limit{Select Top Candidates}
+    limit --> extract[Extract text chunks]
+    extract --> trace[Append parent document metadata]
+    trace --> build[Publish Evidence Package payload]

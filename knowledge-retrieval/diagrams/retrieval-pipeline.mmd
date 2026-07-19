@@ -1,0 +1,15 @@
+flowchart TD
+    query[Client Query Intent] --> parse[Query interpretation]
+    parse --> route{Scope Check}
+    
+    route --> match1[Semantic similarity search]
+    route --> match2[Lexical keyword search]
+    route --> match3[Metadata index filter]
+    
+    match1 --> combine[Hybrid result merger]
+    match2 --> combine
+    match3 --> combine
+    
+    combine --> rank[Evidence ranking engine]
+    rank --> select[Evidence Package compiler]
+    select --> dispatch[Deliver Evidence Package]

@@ -1,0 +1,10 @@
+graph TD
+    candidate[Candidate chunk match] --> score1[Check operational domain similarity]
+    candidate --> score2[Audits trust level weight]
+    candidate --> score3[Assess document version recency]
+    
+    score1 --> combine[Compile composite ranking index]
+    score2 --> combine
+    score3 --> combine
+    
+    combine --> sort[Sort candidates list]

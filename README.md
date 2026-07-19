@@ -97,6 +97,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock medical SOP, weather hazard, and policy ingestion audits
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Processing stages, chunking flow, and metadata Mermaid charts
+├── knowledge-retrieval/ # Canonical knowledge indexing, search query and evidence compiler
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock medical, volunteer, and weather retrieval queries
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Retrieval pipeline, hybrid matching, and ranking Mermaid charts
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

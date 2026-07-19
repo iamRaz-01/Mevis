@@ -1,0 +1,17 @@
+# MEVIS Retrieval Example
+# Represents query requesting bag entry checking restrictions.
+
+retrieval_request:
+  query_text: 'baggage ingress screening dimensions restrictions'
+  context_scope: 'SecurityAudit'
+  filters:
+    domain: 'Security'
+    min_trust: 0.90
+
+evidence_package:
+  package_id: 'pkg_retrieval_sec_004'
+  citations:
+    - chunk_id: 'kn_security_policy_04_chunk_01'
+      parent_asset_id: 'kn_security_policy_04'
+      text: 'Lock gate entries immediately on lockdown mode command. Audit bag dimensions against security limits.'
+      relevance_rank: 1

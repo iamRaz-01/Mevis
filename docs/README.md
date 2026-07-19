@@ -49,6 +49,7 @@ The MEVIS documentation is organized into logical functional folders to make it 
 - **[Context Integration Contracts](../context-api/query-contracts.md)**: Details logical interaction contracts (Query, Update, Subscription, Snapshot, and Event) enabling components to interact with the Context Intelligence layer.
 - **[Knowledge Architecture](../knowledge/architecture.md)**: Details logical knowledge models, taxonomies, hierarchies, ownership configurations, governance compliance checklists, lifecycle stages, and relationship maps.
 - **[Knowledge Ingestion Pipeline](../knowledge-ingestion/ingestion-pipeline.md)**: Details logical ingestion stages, supported document sources, cleaning exclusions, terminology normalizations, segment chunking boundaries, and metadata extractions.
+- **[Knowledge Retrieval Architecture](../knowledge-retrieval/retrieval-architecture.md)**: Details logical query understanding, semantic representations, logical indexing partitioning, hybrid retrieval mergings, candidate sorting, and Evidence Package citations compilations.
 
 - **[MEVIS Engineering Constitution (MEC)](./engineering/MEVIS%20Product%20Constitution.md)**: Chapter 1 defining the core constitutional authority and the Open Decisions Register (`OD-001` through `OD-008`).
 - **[MEVIS Architecture Specification](./architecture/MEVIS%20Architecture%20Specification%20v1.0.md)**: Details logical bounded contexts, system context maps, database schema outlines, and the Incident State Machine.

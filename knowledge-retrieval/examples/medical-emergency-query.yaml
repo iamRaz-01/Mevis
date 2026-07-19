@@ -1,0 +1,17 @@
+# MEVIS Retrieval Example
+# Represents query requesting cardiac response SOP steps.
+
+retrieval_request:
+  query_text: 'volunteer collapsed near Gate B, chest pain suspected.'
+  context_scope: 'IncidentResponse'
+  filters:
+    domain: 'Medical'
+    min_trust: 0.90
+
+evidence_package:
+  package_id: 'pkg_retrieval_med_204'
+  citations:
+    - chunk_id: 'kn_medical_sop_01_chunk_01'
+      parent_asset_id: 'kn_medical_sop_01'
+      text: 'Dispatch nearest volunteer certified in CPR. Retrieve AED from Zone medical cabinet.'
+      relevance_rank: 1

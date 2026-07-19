@@ -1,0 +1,17 @@
+# MEVIS Retrieval Example
+# Represents query requesting concourse crowd control.
+
+retrieval_request:
+  query_text: 'crowd congestion limits concourse corridor'
+  context_scope: 'CrowdControl'
+  filters:
+    domain: 'Venue'
+    min_trust: 0.85
+
+evidence_package:
+  package_id: 'pkg_retrieval_crowd_402'
+  citations:
+    - chunk_id: 'kn_venue_guideline_05_chunk_01'
+      parent_asset_id: 'kn_venue_guideline_05'
+      text: 'Select routes prioritizing accessible lift shafts. Coordinate steward support at Gate exits.'
+      relevance_rank: 1

@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "test": "npm test --workspaces --if-present",
     "build": "tsc -b",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
     "eslint": "^9.21.0",

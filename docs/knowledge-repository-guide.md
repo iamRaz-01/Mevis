@@ -68,3 +68,46 @@ REST actions are verified using permission-based checks instead of hardcoding ro
 ## 5. Duplicate Check Filter
 
 When document files are uploaded, a SHA-256 hash is computed across the binary buffer. If a matching checksum exists in `document_versions.checksum_sha256`, the upload is rejected with a `409 Conflict` (Already Exists) code.
+
+---
+
+## 6. Knowledge Ingestion & Processing Pipeline
+
+Upon successful upload of a new document version, an asynchronous processing job is queued. The processing steps are coordinated by a modular pipeline design:
+
+```text
+[Worker] -> [Orchestrator] -> [Parser Registry] -> [Cleaner] -> [Normalizer] -> [Detector] -> [Chunker] -> [Manifest] -> [Store]
+```
+
+### Ingestion States:
+- `Queued`: Initial state waiting for worker pick up.
+- `Downloading`: Retrieving binary payload from the storage port.
+- `Parsing`: Extracting raw textual streams via PDF, DOCX, TXT, or MD parsers.
+- `Cleaning`: Strip control symbols, normalize bullet indicators, and straighten smart quotes.
+- `Normalizing`: Apply NFC Canonical composition and regulate line spacing.
+- `Chunking`: Build logical section blocks with hierarchical parent structures and bidirectional sibling pointers.
+- `Persisting`: Write chunks and manifest registers to database tables.
+- `Completed` / `Failed`: Terminating statuses with error diagnostics.
+
+---
+
+## 7. Logical Chunk Model & Processing Manifest
+
+### Logical Chunk Fields:
+- `id`: Unique UUID.
+- `processed_document_id`: Reference to document manifest.
+- `chunk_index`: 0-indexed position.
+- `text`: Normalised block text.
+- `section_title` / `parent_section`: Heading descriptors.
+- `heading_level`: Markdown heading depth.
+- `previous_chunk_id` / `next_chunk_id`: Sibling references.
+
+### Processing Manifest:
+Every finished document saves a manifest in `processed_documents` logging:
+- `parser_used`: resolved format parser (PDF | DOCX | Markdown | TXT).
+- `detected_language`: derived language (English | French | Spanish | Arabic | Hindi).
+- `chunk_count`, `character_count`, `word_count`.
+- `checksum_sha256`: verification hash.
+- `duration_ms`: SRE execution time.
+- `warnings`: JSON-serialized list of pipeline warnings.
+

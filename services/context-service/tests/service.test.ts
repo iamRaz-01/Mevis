@@ -71,8 +71,13 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
-    await dbClient.execute("DELETE FROM operational_audit_logs;");
+    await dbClient.execute("DELETE FROM user_memories;");
+    await dbClient.execute("DELETE FROM ai_conversation_messages;");
     await dbClient.execute("DELETE FROM conversation_messages;");
+    await dbClient.execute("DELETE FROM conversations;");
+    await dbClient.execute("DELETE FROM ai_sessions;");
+    await dbClient.execute("DELETE FROM ai_personas;");
+    await dbClient.execute("DELETE FROM operational_audit_logs;");
     await dbClient.execute("DELETE FROM announcements;");
     await dbClient.execute("DELETE FROM broadcasts;");
     await dbClient.execute("DELETE FROM notifications;");
@@ -1254,5 +1259,69 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.strictEqual(res.status, 200);
     const list = res.payload.data as any[];
     assert.ok(list.length > 0);
+  });
+
+  let testSessionId = "";
+  let testConversationId = "";
+
+  test("103. Verify POST /runtime/ai/session initializes session and returns active info", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/session",
+      { userId: masterVolunteerId, activeIncidentId: testIncidentId, activeVenueId: "VENUE-01" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.session.id);
+    assert.ok(data.conversation.id);
+    assert.strictEqual(data.session.role, "ROLE_COORDINATOR"); // master volunteer (Carlos) is resolved as coordinator
+    testSessionId = data.session.id;
+    testConversationId = data.conversation.id;
+  });
+
+  test("104. Verify GET /runtime/ai/personas lists assistant configurations", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/personas", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 3);
+    assert.strictEqual(list[0].id, "volunteer_assistant");
+  });
+
+  test("105. Verify POST /runtime/ai/memory saves personalization facts", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/memory",
+      { userId: masterVolunteerId, memoryText: "Volunteer prefers brief Spanish navigation guidance.", scope: "USER" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.payload.data.id);
+  });
+
+  test("106. Verify POST /runtime/ai/chat compiles prompt package without calling LLM", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/chat",
+      { sessionId: testSessionId, conversationId: testConversationId, personaId: "volunteer_assistant", messageContent: "Where should I go?" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const pkg = res.payload.data;
+    assert.ok(pkg.systemPrompt.includes("Volunteer Assistant"));
+    assert.ok(pkg.systemPrompt.includes("Spanish"));
+    assert.strictEqual(pkg.userPrompt, "Where should I go?");
+    assert.ok(pkg.context.operationalStateJson.includes("VENUE-01"));
+  });
+
+  test("107. Verify DELETE /runtime/ai/session/:id terminates session", async () => {
+    const res = await makeRequest(
+      "DELETE",
+      `/runtime/ai/session/${testSessionId}`,
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.success, true);
   });
 });

@@ -44,6 +44,11 @@ import {
   AnnouncementRepository,
   ConversationMessageRepository,
   OperationalAuditLogRepository,
+  AiSessionRepository,
+  ConversationRepository,
+  AiConversationMessageRepository,
+  UserMemoryRepository,
+  AiPersonaRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -122,6 +127,14 @@ import { SearchEngine } from "./runtime/search-engine";
 import { AnalyticsEngine } from "./runtime/analytics-engine";
 import { PlaybackEngine } from "./runtime/playback-engine";
 import { AuditEngine } from "./runtime/audit-engine";
+
+import { SessionManager } from "./ai/session-manager";
+import { IdentityResolver } from "./ai/identity-resolver";
+import { ConversationManager } from "./ai/conversation-manager";
+import { MemoryManager } from "./ai/memory-manager";
+import { PromptOrchestrator } from "./ai/prompt-orchestrator";
+import { PersonaRegistry } from "./ai/persona-registry";
+import { AiGateway } from "./ai/gateway";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -457,6 +470,28 @@ const runtimePlaybackEngine = new PlaybackEngine(auditLogRepo);
 
 const runtimeAuditEngine = new AuditEngine(auditLogRepo);
 runtimeAuditEngine.subscribeEvents();
+
+const aiSessionRepo = new AiSessionRepository(dbClient);
+const aiConversationRepo = new ConversationRepository(dbClient);
+const aiMessageRepo = new AiConversationMessageRepository(dbClient);
+const aiMemoryRepo = new UserMemoryRepository(dbClient);
+const aiPersonaRepo = new AiPersonaRepository(dbClient);
+
+const aiSessions = new SessionManager(aiSessionRepo);
+const aiIdentity = new IdentityResolver(volunteerRepo);
+const aiConversations = new ConversationManager(aiConversationRepo, aiMessageRepo);
+const aiMemories = new MemoryManager(aiMemoryRepo);
+const aiPrompts = new PromptOrchestrator(incidentRepo, taskRepo);
+const aiPersonas = new PersonaRegistry();
+
+const aiGateway = new AiGateway(
+  aiSessions,
+  aiIdentity,
+  aiConversations,
+  aiMemories,
+  aiPrompts,
+  aiPersonas
+);
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -2602,6 +2637,81 @@ const server = http.createServer(async (req, res) => {
         reason: row.reason,
       }));
       return sendJson(res, 200, list);
+    }
+
+    // POST /runtime/ai/session - Starts dynamic interaction session
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "session" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await aiGateway.initializeSession(body.userId, body.activeIncidentId, body.activeVenueId);
+      return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/chat - Submits user chat turn, compiles prompt package
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "chat" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const promptPkg = await aiGateway.processChat(body.sessionId, body.conversationId, body.personaId, body.messageContent);
+      return sendJson(res, 200, promptPkg);
+    }
+
+    // GET /runtime/ai/conversations - Lists conversations
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "conversations" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await aiConversationRepo.findAll();
+      return sendJson(res, 200, rows);
+    }
+
+    // GET /runtime/ai/conversations/:id - Retrieves single conversation detailing message log history
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "conversations" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await aiGateway.conversations.getConversationMessages(segments[3]);
+      return sendJson(res, 200, list);
+    }
+
+    // POST /runtime/ai/memory - Saves personalized preference facts
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "memory" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const mem = await aiGateway.memories.addMemory(body.userId, body.memoryText, body.scope);
+      return sendJson(res, 200, mem);
+    }
+
+    // GET /runtime/ai/personas - Lists built-in persona configurations
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "personas" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = aiGateway.personas.listPersonas();
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/ai/sessions - Lists active sessions
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "sessions" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await aiSessionRepo.findAll();
+      return sendJson(res, 200, rows);
+    }
+
+    // DELETE /runtime/ai/session/:id - Terminates session
+    if (req.method === "DELETE" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "session" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      await aiGateway.sessions.deleteSession(segments[3]);
+      return sendJson(res, 200, { success: true });
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

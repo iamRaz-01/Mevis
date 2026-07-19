@@ -619,3 +619,77 @@ export class OperationalAuditLogRepository extends RelationalRepository<Operatio
     super(db, "operational_audit_logs", ["id", "entity_type", "entity_id", "action_type", "previous_value", "new_value", "actor", "timestamp", "reason"], "OperationalAuditLog");
   }
 }
+
+export interface AiSessionEntity extends Identifiable<string> {
+  id: string;
+  user_id: string;
+  role: string;
+  active_incident_id: string | null;
+  active_venue_id: string | null;
+  created_at: string;
+}
+
+export class AiSessionRepository extends RelationalRepository<AiSessionEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_sessions", ["id", "user_id", "role", "active_incident_id", "active_venue_id", "created_at"], "AiSession");
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.db.execute("DELETE FROM ai_sessions WHERE id = ?;", [id]);
+  }
+}
+
+export interface ConversationEntity extends Identifiable<string> {
+  id: string;
+  session_id: string;
+  title: string;
+  created_at: string;
+}
+
+export class ConversationRepository extends RelationalRepository<ConversationEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "conversations", ["id", "session_id", "title", "created_at"], "Conversation");
+  }
+}
+
+export interface AiConversationMessageEntity extends Identifiable<string> {
+  id: string;
+  conversation_id: string;
+  role: string;
+  content: string;
+  timestamp: string;
+}
+
+export class AiConversationMessageRepository extends RelationalRepository<AiConversationMessageEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_conversation_messages", ["id", "conversation_id", "role", "content", "timestamp"], "ConversationMessage");
+  }
+}
+
+export interface UserMemoryEntity extends Identifiable<string> {
+  id: string;
+  user_id: string;
+  memory_text: string;
+  scope: string;
+  created_at: string;
+}
+
+export class UserMemoryRepository extends RelationalRepository<UserMemoryEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "user_memories", ["id", "user_id", "memory_text", "scope", "created_at"], "UserMemory");
+  }
+}
+
+export interface AiPersonaEntity extends Identifiable<string> {
+  id: string;
+  name: string;
+  tone: string;
+  capabilities_json: string;
+  response_constraints: string;
+}
+
+export class AiPersonaRepository extends RelationalRepository<AiPersonaEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_personas", ["id", "name", "tone", "capabilities_json", "response_constraints"], "AiPersona");
+  }
+}

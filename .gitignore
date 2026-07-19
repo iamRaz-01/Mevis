@@ -141,3 +141,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# MEVIS Local Persistent Storage
+*.db
+uploads/
+test_knowledge.db
+test_uploads/

@@ -1,6 +1,6 @@
-# Spatial Hierarchy Specification
+# Spatial Hierarchy & Semantics Specification
 
-Defines physical space and navigation layouts within the stadium.
+Defines physical space, navigation layouts, and visibility rules within the stadium.
 
 ---
 
@@ -15,6 +15,19 @@ Venue (Lusail Stadium)
           └── Medical Station (First Aid North Tunnel)
 ```
 
-## 2. Navigational Adjacency
+---
 
-Every zone specifies adjacency mapping lists to compute routing pathways for volunteers.
+## 2. Spatial Semantics
+
+### 2.1 Adjacency Mapping
+
+Zones are connected via directional adjacency links (e.g. `Gate B12` is adjacent to `Concourse B`). Adjacency dictates physical walking paths.
+
+### 2.2 Visibility Fields
+
+Cameras and posts define visibility polygons. An incident occurring outside visibility polygons requires physical steward validation dispatches.
+
+### 2.3 Reachability Metrics
+
+Reachability defines estimated volunteer travel time (seconds) between any two zones based on current crowd density maps:
+\[ T_{\text{travel}} = D \cdot (1 + \beta \cdot \text{Density}) \]

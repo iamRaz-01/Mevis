@@ -23,6 +23,25 @@ print("Starting MEVIS world state and digital twin semantic validation...")
 registry = check_yaml(os.path.join(WORLD_DIR, "entity-registry.yaml"))
 invariants = check_yaml(os.path.join(WORLD_DIR, "invariants.yaml"))
 
+# 1.1 Verify all core and model specs exist
+expected_core_specs = [
+    "digital-twin.md", "world-model.md", "world-boundaries.md",
+    "world-assumptions.md", "change-model.md", "world-evolution.md",
+    "observation-model.md"
+]
+expected_model_specs = [
+    "spatial-model.md", "temporal-model.md", "resource-model.md",
+    "relationship-model.md", "identity-model.md", "metadata-model.md",
+    "world-viewpoints.md", "quality-rules.md", "confidence-propagation.md",
+    "query-model.md"
+]
+for spec in expected_core_specs:
+    if not os.path.exists(os.path.join(WORLD_DIR, "core", spec)):
+        log_error(f"Missing core specification file: {spec}")
+for spec in expected_model_specs:
+    if not os.path.exists(os.path.join(WORLD_DIR, "models", spec)):
+        log_error(f"Missing model specification file: {spec}")
+
 examples = ["stadium-world.yaml", "volunteer-world.yaml", "incident-world.yaml"]
 loaded_examples = {}
 for ex in examples:

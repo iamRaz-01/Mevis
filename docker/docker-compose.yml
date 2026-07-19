@@ -1,15 +1,132 @@
 version: '3.8'
 
 services:
-  context-service:
+  # 1. API Gateway (Port 8000)
+  gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=8000
+      - LOG_LEVEL=info
+      - SERVICE_REGISTRY_URL=http://gateway:8000/registry
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/gateway
+
+  # 2. Identity Service (Spring Boot Auth - Port 8080)
+  identity-service:
+    image: eclipse-temurin:21-jdk-jammy
+    volumes:
+      - ../services/identity-service:/app
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    command: ./mvnw spring-boot:run
+
+  # 3. Next.js Dashboard Frontend (Port 3000)
+  dashboard:
     build:
       context: ..
       dockerfile: docker/Dockerfile.base
     environment:
       - NODE_ENV=development
       - PORT=3000
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev --workspace=apps/dashboard
+
+  # 4. Context Service (Port 3006)
+  context-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
       - LOG_LEVEL=info
+    ports:
+      - "3006:3006"
     volumes:
       - ../:/usr/src/app
       - /usr/src/app/node_modules
     command: npm run start --workspace=services/context-service
+
+  # 5. Core Infrastructure Services
+  configuration-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/configuration-service
+
+  storage-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+    ports:
+      - "3002:3002"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/storage-service
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+    ports:
+      - "3003:3003"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/notification-service
+
+  audit-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+    ports:
+      - "3004:3004"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/audit-service
+
+  health-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+    ports:
+      - "3005:3005"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/health-service

@@ -97,6 +97,7 @@ export function Providers({ children }: { readonly children: React.ReactNode }) 
     { name: "Incidents", path: "/dashboard/incidents", icon: "🚨", roles: ["ROLE_ADMIN", "ROLE_EVENT_COORDINATOR"] },
     { name: "Volunteers", path: "/dashboard/volunteers", icon: "👥", roles: ["ROLE_ADMIN", "ROLE_EVENT_COORDINATOR"] },
     { name: "Context Intelligence", path: "/dashboard/context", icon: "🧠", roles: ["ROLE_ADMIN"] },
+    { name: "Operations Center", path: "/dashboard/ops", icon: "🛠️", roles: ["ROLE_ADMIN"] },
     { name: "Settings", path: "/dashboard/settings", icon: "⚙️" },
   ];
 

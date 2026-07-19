@@ -317,6 +317,103 @@ export class DecisionSnapshotRepository extends RelationalRepository<DecisionSna
       "DecisionSnapshot"
     );
   }
+}export interface OrganizationEntity extends Identifiable<string> {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  created_at: string;
 }
 
+export class OrganizationRepository extends RelationalRepository<OrganizationEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "organizations", ["id", "name", "parent_id", "created_at"], "Organization");
+  }
+}
 
+export interface VenueEntity extends Identifiable<string> {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export class VenueRepository extends RelationalRepository<VenueEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "venues", ["id", "name", "created_at"], "Venue");
+  }
+}
+
+export interface VenueZoneEntity extends Identifiable<string> {
+  id: string;
+  venue_id: string;
+  name: string;
+}
+
+export class VenueZoneRepository extends RelationalRepository<VenueZoneEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "venue_zones", ["id", "venue_id", "name"], "VenueZone");
+  }
+}
+
+export interface VenueGateEntity extends Identifiable<string> {
+  id: string;
+  venue_id: string;
+  zone_id: string | null;
+  name: string;
+}
+
+export class VenueGateRepository extends RelationalRepository<VenueGateEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "venue_gates", ["id", "venue_id", "zone_id", "name"], "VenueGate");
+  }
+}
+
+export interface TeamEntity extends Identifiable<string> {
+  id: string;
+  name: string;
+  organization_id: string;
+  capabilities_json: string;
+  created_at: string;
+}
+
+export class TeamRepository extends RelationalRepository<TeamEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "teams", ["id", "name", "organization_id", "capabilities_json", "created_at"], "Team");
+  }
+}
+
+export interface VolunteerEntity extends Identifiable<string> {
+  id: string;
+  name: string;
+  email: string;
+  team_id: string | null;
+  organization_id: string;
+  certifications_json: string;
+  languages_json: string;
+  created_at: string;
+}
+
+export class VolunteerRepository extends RelationalRepository<VolunteerEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(
+      db,
+      "volunteers",
+      ["id", "name", "email", "team_id", "organization_id", "certifications_json", "languages_json", "created_at"],
+      "Volunteer"
+    );
+  }
+}
+
+export interface ResourceEntity extends Identifiable<string> {
+  id: string;
+  name: string;
+  category: string;
+  serial_number: string;
+  capabilities_json: string;
+  created_at: string;
+}
+
+export class ResourceRepository extends RelationalRepository<ResourceEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "resources", ["id", "name", "category", "serial_number", "capabilities_json", "created_at"], "Resource");
+  }
+}

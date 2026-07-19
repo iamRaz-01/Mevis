@@ -71,6 +71,20 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM volunteers;");
+    await dbClient.execute("DELETE FROM venue_gates;");
+    await dbClient.execute("DELETE FROM venue_zones;");
+    await dbClient.execute("DELETE FROM venues;");
+    await dbClient.execute("DELETE FROM teams;");
+    await dbClient.execute("DELETE FROM resources;");
+    await dbClient.execute("DELETE FROM organizations;");
+
+    await dbClient.execute("INSERT INTO organizations (id, name, parent_id, created_at) VALUES ('ORG-01', 'FIFA Operations', NULL, '2026-07-19T00:00:00Z');");
+    await dbClient.execute("INSERT INTO venues (id, name, created_at) VALUES ('VENUE-01', 'Lusail Stadium', '2026-07-19T00:00:00Z');");
+    await dbClient.execute("INSERT INTO venue_zones (id, venue_id, name) VALUES ('ZONE-01', 'VENUE-01', 'Zone A');");
+    await dbClient.execute("INSERT INTO venue_gates (id, venue_id, zone_id, name) VALUES ('GATE-01', 'VENUE-01', 'ZONE-01', 'Gate A1');");
+    await dbClient.execute("INSERT INTO teams (id, name, organization_id, capabilities_json, created_at) VALUES ('TEAM-01', 'Medical Responders', 'ORG-01', '[\"MEDICAL\"]', '2026-07-19T00:00:00Z');");
+    await dbClient.execute("INSERT INTO resources (id, name, category, serial_number, capabilities_json, created_at) VALUES ('RES-01', 'Ambulance 1', 'VEHICLE', 'SN-001', '[\"TRANSPORT\"]', '2026-07-19T00:00:00Z');");
   });
 
   after(async () => {
@@ -840,5 +854,92 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.strictEqual(res.status, 200);
     const list = res.payload.data as any[];
     assert.ok(list.length > 0);
+  });
+
+  let masterVolunteerId: string;
+
+  test("71. Verify POST /api/volunteers registers a new volunteer", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/volunteers",
+      {
+        name: "Carlos Santana",
+        email: "carlos@fifa.org",
+        organizationId: "ORG-01",
+        teamId: "TEAM-01",
+        certifications: ["FIRST_AID", "MEDICAL"],
+        languages: ["Spanish", "English"],
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const vol = res.payload.data;
+    assert.ok(vol.id.startsWith("VOL-"));
+    assert.strictEqual(vol.name, "Carlos Santana");
+    masterVolunteerId = vol.id;
+  });
+
+  test("72. Verify POST /api/volunteers with duplicate email throws validation error", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/volunteers",
+      {
+        name: "Carlos Replica",
+        email: "carlos@fifa.org",
+        organizationId: "ORG-01",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 500); // Unique constraint violation is translated as server error
+  });
+
+  test("73. Verify PUT /api/volunteers/:id updates profile parameters", async () => {
+    const res = await makeRequest(
+      "PUT",
+      `/api/volunteers/${masterVolunteerId}`,
+      {
+        name: "Carlos Santana Junior",
+        languages: ["Spanish", "Portuguese"],
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const vol = res.payload.data;
+    assert.strictEqual(vol.name, "Carlos Santana Junior");
+    assert.ok(vol.languages.includes("Portuguese"));
+  });
+
+  test("74. Verify GET /api/volunteers lists master volunteers", async () => {
+    const res = await makeRequest("GET", "/api/volunteers", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length > 0);
+    assert.ok(list.some(v => v.id === masterVolunteerId));
+  });
+
+  test("75. Verify GET /api/assets/search retrieves query filters", async () => {
+    const res = await makeRequest("GET", `/api/assets/search?language=Portuguese`, undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length > 0);
+    assert.strictEqual(list[0].id, masterVolunteerId);
+  });
+
+  test("76. Verify GET endpoints retrieve master databases for venues, resources, teams, and organizations", async () => {
+    const resVenues = await makeRequest("GET", "/api/venues", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(resVenues.status, 200);
+    assert.ok(resVenues.payload.data.length > 0);
+
+    const resResources = await makeRequest("GET", "/api/resources", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(resResources.status, 200);
+    assert.ok(resResources.payload.data.length > 0);
+
+    const resTeams = await makeRequest("GET", "/api/teams", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(resTeams.status, 200);
+    assert.ok(resTeams.payload.data.length > 0);
+
+    const resOrganizations = await makeRequest("GET", "/api/organizations", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(resOrganizations.status, 200);
+    assert.ok(resOrganizations.payload.data.length > 0);
   });
 });

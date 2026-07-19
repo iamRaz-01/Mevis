@@ -24,6 +24,13 @@ import {
   TrustedDecisionRepository,
   DecisionRuntimeStateRepository,
   DecisionSnapshotRepository,
+  OrganizationRepository,
+  VenueRepository,
+  VenueZoneRepository,
+  VenueGateRepository,
+  TeamRepository,
+  VolunteerRepository,
+  ResourceRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -85,6 +92,9 @@ import { SnapshotService, type DecisionSnapshotRepoPort } from "./runtime/snapsh
 import { PlaybackManager } from "./runtime/playback-manager";
 import { SubscriptionManager as DecisionSubscriptionManager } from "./runtime/subscription-manager";
 import { type DecisionRuntimeState, type DecisionLifecycleState } from "./runtime/context";
+
+import { OperationalRegistry, type VolunteerRepoPort } from "./operations/registry";
+import { type Volunteer, type Venue, type Resource, type Team, type Organization } from "./operations/context";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -313,6 +323,36 @@ const historyManager = new HistoryManager(decisionRuntimeStateRepo);
 const snapshotService = new SnapshotService(decisionSnapshotRepoPort);
 const playbackManager = new PlaybackManager();
 const decisionSubscriptionManager = new DecisionSubscriptionManager();
+
+const volunteerRepo = new VolunteerRepository(dbClient);
+const venueRepo = new VenueRepository(dbClient);
+const venueZoneRepo = new VenueZoneRepository(dbClient);
+const venueGateRepo = new VenueGateRepository(dbClient);
+const teamRepo = new TeamRepository(dbClient);
+const organizationRepo = new OrganizationRepository(dbClient);
+const resourceRepo = new ResourceRepository(dbClient);
+
+const volunteerRepoPort: VolunteerRepoPort = {
+  save: async (v) => {
+    await volunteerRepo.save(v);
+  },
+  findById: async (id) => {
+    return await volunteerRepo.findById(id);
+  },
+  findAll: async () => {
+    return await volunteerRepo.findAll();
+  }
+};
+
+const operationalRegistry = new OperationalRegistry(
+  volunteerRepoPort,
+  venueRepo,
+  venueZoneRepo,
+  venueGateRepo,
+  teamRepo,
+  organizationRepo,
+  resourceRepo
+);
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -1761,7 +1801,164 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, result);
     }
 
-    // Handled by unified decisions routes above
+    // POST /api/volunteers - Register a new volunteer
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteers" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const v = await operationalRegistry.registerVolunteer(body);
+      return sendJson(res, 200, v);
+    }
+
+    // PUT /api/volunteers/:id - Update an existing volunteer
+    if (req.method === "PUT" && segments[0] === "api" && segments[1] === "volunteers" && segments[2] && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const id = segments[2];
+      const body = await readJson(req);
+      const v = await operationalRegistry.updateVolunteer(id, body);
+      return sendJson(res, 200, v);
+    }
+
+    // GET /api/volunteers/:id - Retrieve details of a single volunteer
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteers" && segments[2] && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const id = segments[2];
+      const row = await volunteerRepo.findById(id);
+      if (!row) {
+        return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: `Volunteer "${id}" not found.` }]);
+      }
+      return sendJson(res, 200, {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        teamId: row.team_id,
+        organizationId: row.organization_id,
+        certifications: row.certifications_json ? JSON.parse(row.certifications_json) : [],
+        languages: row.languages_json ? JSON.parse(row.languages_json) : [],
+        createdAt: row.created_at,
+      });
+    }
+
+    // GET /api/volunteers - List master volunteers
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteers" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await volunteerRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        teamId: row.team_id,
+        organizationId: row.organization_id,
+        certifications: row.certifications_json ? JSON.parse(row.certifications_json) : [],
+        languages: row.languages_json ? JSON.parse(row.languages_json) : [],
+        createdAt: row.created_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/venues - List venues
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "venues" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await venueRepo.findAll();
+      const zones = await venueZoneRepo.findAll();
+      const gates = await venueGateRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        zones: zones.filter((z: any) => z.venue_id === row.id).map((z: any) => ({ id: z.id, name: z.name })),
+        gates: gates.filter((g: any) => g.venue_id === row.id).map((g: any) => ({ id: g.id, name: g.name, zoneId: g.zone_id })),
+        createdAt: row.created_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/resources - List resources
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "resources" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await resourceRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        serialNumber: row.serial_number,
+        capabilities: row.capabilities_json ? JSON.parse(row.capabilities_json) : [],
+        createdAt: row.created_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/teams - List teams
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "teams" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await teamRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        organizationId: row.organization_id,
+        capabilities: row.capabilities_json ? JSON.parse(row.capabilities_json) : [],
+        createdAt: row.created_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/organizations - List organizations
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "organizations" && !segments[2]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await organizationRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        parentId: row.parent_id,
+        createdAt: row.created_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/assets/search - Search assets by attributes (certifications, languages)
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "assets" && segments[2] === "search" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const queryParams = new URL(req.url || "", `http://localhost:${PORT}`).searchParams;
+      const certification = queryParams.get("certification");
+      const language = queryParams.get("language");
+      
+      const vRows = await volunteerRepo.findAll();
+      let list = vRows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        teamId: row.team_id,
+        organizationId: row.organization_id,
+        certifications: row.certifications_json ? JSON.parse(row.certifications_json) : [],
+        languages: row.languages_json ? JSON.parse(row.languages_json) : [],
+        createdAt: row.created_at,
+      }));
+
+      if (certification) {
+        list = list.filter(v => v.certifications.includes(certification));
+      }
+      if (language) {
+        list = list.filter(v => v.languages.includes(language));
+      }
+
+      return sendJson(res, 200, list);
+    }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);
   } catch (err: any) {

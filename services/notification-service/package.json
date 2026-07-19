@@ -1,0 +1,18 @@
+{
+  "name": "@mevis/notification-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MEVIS Notification Service — unified multi-channel notification dispatcher",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/infrastructure-configuration": "*",
+    "@mevis/infrastructure-notification": "*",
+    "@mevis/infrastructure-auditing": "*"
+  }
+}

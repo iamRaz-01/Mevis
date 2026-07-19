@@ -1,0 +1,17 @@
+{
+  "name": "@mevis/audit-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MEVIS Audit Service — immutable centralized audit event recording",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/infrastructure-configuration": "*",
+    "@mevis/infrastructure-auditing": "*"
+  }
+}

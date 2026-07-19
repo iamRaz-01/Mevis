@@ -1,0 +1,12 @@
+{
+  "name": "@mevis/infrastructure-notification",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unified notification router for MEVIS platform services",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@mevis/infrastructure-configuration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Centralized environment configuration loader and validator for MEVIS",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
+}

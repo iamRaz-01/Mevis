@@ -1,0 +1,17 @@
+{
+  "name": "@mevis/health-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MEVIS Health Service — platform-wide liveness, readiness, and dependency health aggregator",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/infrastructure-configuration": "*",
+    "@mevis/infrastructure-health": "*"
+  }
+}

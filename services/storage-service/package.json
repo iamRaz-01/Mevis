@@ -1,0 +1,17 @@
+{
+  "name": "@mevis/storage-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MEVIS Storage Service — reusable file upload, download, and management API",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/infrastructure-configuration": "*",
+    "@mevis/infrastructure-storage": "*"
+  }
+}

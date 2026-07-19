@@ -6,7 +6,18 @@
     { "path": "packages/config" },
     { "path": "packages/logger" },
     { "path": "packages/core" },
+    { "path": "packages/infrastructure/secrets" },
+    { "path": "packages/infrastructure/configuration" },
+    { "path": "packages/infrastructure/storage" },
+    { "path": "packages/infrastructure/notification" },
+    { "path": "packages/infrastructure/auditing" },
+    { "path": "packages/infrastructure/health" },
     { "path": "services/context-service" },
+    { "path": "services/configuration-service" },
+    { "path": "services/storage-service" },
+    { "path": "services/notification-service" },
+    { "path": "services/audit-service" },
+    { "path": "services/health-service" },
     { "path": "apps/dashboard" }
   ]
 }

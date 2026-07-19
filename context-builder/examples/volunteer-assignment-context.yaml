@@ -1,0 +1,16 @@
+# MEVIS Context Builder Output Example
+# Represents enrichment of a volunteer patrol track.
+
+context_builder_output:
+  pipeline_id: 'pipe_volunteer_patrol_104'
+  stages:
+    - stage_name: 'normalization'
+      enabled: true
+    - stage_name: 'world-lookup'
+      enabled: true
+  resolved_entities:
+    - id: 'vol_steward_104'
+      type: 'Volunteer'
+  policy_citations:
+    - policy_id: 'pol_patrol_duration_1'
+      source: 'SOP-Operations-v4'

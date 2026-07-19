@@ -1,0 +1,12 @@
+graph TD
+    raw[Raw Ingress Observation] --> stage1[Normalization Stage]
+    stage1 --> stage2[Resolution Stage]
+    
+    stage2 -->|Target check| registry[Entity Registry]
+    stage2 --> stage3[World State Lookup]
+    
+    stage3 -->|State query| twin[Digital Twin world state]
+    stage3 --> stage4[Enrichment & Assembly]
+    
+    stage4 -->|Attach guidance| knowledge[SOP Knowledge base]
+    stage4 --> stage5[Validation & Scoring]

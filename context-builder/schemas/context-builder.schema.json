@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Context Builder Configuration Schema",
+  "type": "object",
+  "properties": {
+    "pipeline_id": { "type": "string" },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage_name": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "timeout_ms": { "type": "integer" }
+        },
+        "required": ["stage_name", "enabled"]
+      }
+    }
+  },
+  "required": ["pipeline_id", "stages"]
+}

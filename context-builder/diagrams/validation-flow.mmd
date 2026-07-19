@@ -1,0 +1,10 @@
+flowchart TD
+    assembly[Assembled Context Object] --> check1{Freshness check}
+    check1 -- "Stale" --> reject[REJECT payload]
+    check1 -- "Fresh" --> check2{Evidence check}
+    
+    check2 -- "Orphan" --> reject
+    check2 -- "Traceable" --> check3{Invariants check}
+    
+    check3 -- "Fail" --> reject
+    check3 -- "Pass" --> publish[Publish Context]

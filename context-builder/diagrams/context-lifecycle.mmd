@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Normalize : Raw Observation
+    Normalize --> Resolved : Entity matches registry
+    Resolved --> Enriched : World state + SOP attached
+    Enriched --> Validated : Invariants execute
+    
+    Validated --> Cached : published to cache
+    Cached --> Invalidated : updates delta received
+    
+    Invalidated --> [*]

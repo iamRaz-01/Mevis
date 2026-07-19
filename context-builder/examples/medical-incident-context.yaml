@@ -1,0 +1,20 @@
+# MEVIS Context Builder Output Example
+# Represents enrichment of a medical incident.
+
+context_builder_output:
+  pipeline_id: 'pipe_medical_dispatch_001'
+  stages:
+    - stage_name: 'normalization'
+      enabled: true
+      timeout_ms: 50
+    - stage_name: 'entity-resolution'
+      enabled: true
+      timeout_ms: 100
+  resolved_entities:
+    - id: 'inc_medical_001'
+      type: 'Incident'
+    - id: 'vol_steward_104'
+      type: 'Volunteer'
+  policy_citations:
+    - policy_id: 'pol_medical_triage_2'
+      source: 'SOP-Medical-v1'

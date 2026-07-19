@@ -1,0 +1,16 @@
+# MEVIS Context Builder Output Example
+# Represents enrichment of meteorological status.
+
+context_builder_output:
+  pipeline_id: 'pipe_weather_evac_003'
+  stages:
+    - stage_name: 'normalization'
+      enabled: true
+    - stage_name: 'policy-retrieval'
+      enabled: true
+  resolved_entities:
+    - id: 'ven_lusail_01'
+      type: 'Venue'
+  policy_citations:
+    - policy_id: 'pol_severe_weather_3'
+      source: 'SOP-Weather-v2'

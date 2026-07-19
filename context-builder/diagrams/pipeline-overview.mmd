@@ -1,0 +1,12 @@
+flowchart TD
+    %% Ingest stages flowchart
+    raw[Raw Ingest Observation] --> norm[Normalization stage]
+    norm --> res[Entity Resolution]
+    res --> lookup[World state lookup]
+    
+    lookup --> enrich[Knowledge & Policy retrieval]
+    enrich --> assembly[Assembly stage]
+    assembly --> val{Validation stage}
+    
+    val -- "Pass" --> publishing[Published Context Object]
+    val -- "Fail" --> reject[REJECTED alert]

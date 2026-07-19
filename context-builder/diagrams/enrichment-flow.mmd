@@ -1,0 +1,7 @@
+graph TD
+    subgraph Data Enrichment Layers
+        ws[World State variables] -->|Query status/location| resolve[Context Object]
+        kb[Knowledge Manual guidelines] -->|Index SOP citations| resolve
+        pol[Regulatory Policies] -->|Inject safety constraints| resolve
+        hist[Escalation timeline logs] -->|Merge recent histories| resolve
+    end

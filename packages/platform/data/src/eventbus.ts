@@ -1,31 +1,50 @@
-export interface EventEnvelope<T = unknown> {
-  readonly id: string;
-  readonly topic: string;
+import { getRequestContext } from "@mevis/platform-communication";
+
+export interface PlatformEvent<T = unknown> {
+  readonly eventId: string;
+  readonly eventType: string;
+  readonly aggregateId: string;
+  readonly occurredAt: string;
+  readonly version: number;
+  readonly sourceService: string;
+  readonly correlationId: string;
   readonly payload: T;
-  readonly timestamp: string;
 }
 
-export type EventHandler<T = unknown> = (envelope: EventEnvelope<T>) => Promise<void> | void;
+export type EventHandler<T = unknown> = (event: PlatformEvent<T>) => Promise<void> | void;
 
 export interface EventBus {
-  publish<T = unknown>(topic: string, payload: T): Promise<void>;
-  subscribe<T = unknown>(topic: string, handler: EventHandler<T>): void;
+  publish<T = unknown>(
+    eventType: string,
+    payload: T,
+    metadata?: Partial<Omit<PlatformEvent<T>, "eventId" | "eventType" | "occurredAt" | "correlationId" | "payload">>
+  ): Promise<void>;
+  subscribe<T = unknown>(eventType: string, handler: EventHandler<T>): void;
   registerDlqHandler(
-    handler: (envelope: EventEnvelope, error: Error) => Promise<void> | void,
+    handler: (event: PlatformEvent, error: Error) => Promise<void> | void,
   ): void;
 }
 
 export class LocalEventBusAdapter implements EventBus {
   private readonly handlers = new Map<string, EventHandler<unknown>[]>();
-  private dlqHandler?: (envelope: EventEnvelope, error: Error) => Promise<void> | void;
+  private dlqHandler?: (event: PlatformEvent, error: Error) => Promise<void> | void;
   private readonly maxRetries = 3;
 
-  publish<T = unknown>(topic: string, payload: T): Promise<void> {
-    const envelope: EventEnvelope<T> = {
-      id: crypto.randomUUID(),
-      topic,
+  publish<T = unknown>(
+    eventType: string,
+    payload: T,
+    metadata?: Partial<Omit<PlatformEvent<T>, "eventId" | "eventType" | "occurredAt" | "correlationId" | "payload">>
+  ): Promise<void> {
+    const ctx = getRequestContext();
+    const event: PlatformEvent<T> = {
+      eventId: crypto.randomUUID(),
+      eventType,
+      aggregateId: metadata?.aggregateId || "unknown",
+      occurredAt: new Date().toISOString(),
+      version: metadata?.version || 1,
+      sourceService: metadata?.sourceService || "unknown",
+      correlationId: ctx.correlationId || crypto.randomUUID(),
       payload,
-      timestamp: new Date().toISOString(),
     };
 
     // Dispatch asynchronously to emulate a real distributed message broker
@@ -33,7 +52,7 @@ export class LocalEventBusAdapter implements EventBus {
       // Resolve matches (including simple wildcard '*' support)
       const matchedHandlers: EventHandler<unknown>[] = [];
       for (const [pattern, list] of this.handlers.entries()) {
-        if (pattern === topic || pattern === "*") {
+        if (pattern === eventType || pattern === "*") {
           matchedHandlers.push(...list);
         }
       }
@@ -46,7 +65,7 @@ export class LocalEventBusAdapter implements EventBus {
         while (attempt < this.maxRetries && !success) {
           attempt++;
           try {
-            await handler(envelope);
+            await handler(event);
             success = true;
           } catch (err) {
             lastError = err instanceof Error ? err : new Error(String(err));
@@ -61,7 +80,7 @@ export class LocalEventBusAdapter implements EventBus {
           // Route to DLQ if all retries fail
           if (this.dlqHandler) {
             try {
-              await this.dlqHandler(envelope, lastError);
+              await this.dlqHandler(event, lastError);
             } catch (dlqErr) {
               process.stderr.write(
                 `[EventBus DLQ Crash]: Failed to handle DLQ message: ${
@@ -71,7 +90,7 @@ export class LocalEventBusAdapter implements EventBus {
             }
           } else {
             process.stderr.write(
-              `[EventBus Error]: Message ${envelope.id} failed subscriber on "${topic}" and no DLQ is registered. Error: ${lastError.message}\n`,
+              `[EventBus Error]: Event ${event.eventId} failed subscriber on "${eventType}" and no DLQ is registered. Error: ${lastError.message}\n`,
             );
           }
         }
@@ -81,15 +100,13 @@ export class LocalEventBusAdapter implements EventBus {
     return Promise.resolve();
   }
 
-  subscribe<T = unknown>(topic: string, handler: EventHandler<T>): void {
-    const list = this.handlers.get(topic) || [];
+  subscribe<T = unknown>(eventType: string, handler: EventHandler<T>): void {
+    const list = this.handlers.get(eventType) || [];
     list.push(handler as unknown as EventHandler<unknown>);
-    this.handlers.set(topic, list);
+    this.handlers.set(eventType, list);
   }
 
-  registerDlqHandler(
-    handler: (envelope: EventEnvelope, error: Error) => Promise<void> | void,
-  ): void {
+  registerDlqHandler(handler: (event: PlatformEvent, error: Error) => Promise<void> | void): void {
     this.dlqHandler = handler;
   }
 }

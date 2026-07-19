@@ -219,7 +219,7 @@ async function run() {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Event bus maxRetries = 3. Should retry 3 times and then route to DLQ
-    if (retryCount === 3 && dlqEnvelope !== null && dlqEnvelope.topic === 'user.created') {
+    if (retryCount === 3 && dlqEnvelope !== null && dlqEnvelope.eventType === 'user.created') {
       console.log(JSON.stringify({ test: 'eventbus_retries_and_dlq', success: true }));
     } else {
       console.log(JSON.stringify({ test: 'eventbus_retries_and_dlq', success: false, retryCount, dlqEnvelope }));

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Semantic Relationships Schema",
+  "type": "object",
+  "properties": {
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_id": { "type": "string" },
+          "relationship_type": {
+            "type": "string",
+            "enum": [
+              "Structural",
+              "Spatial",
+              "Operational",
+              "Temporal",
+              "Ownership",
+              "Communication",
+              "Semantic"
+            ]
+          },
+          "target_id": { "type": "string" }
+        },
+        "required": ["source_id", "relationship_type", "target_id"]
+      }
+    }
+  },
+  "required": ["relationships"]
+}

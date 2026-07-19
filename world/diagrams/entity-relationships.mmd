@@ -1,0 +1,9 @@
+graph LR
+    vol[Volunteer] -->|Spatial: located_in| zon[Zone]
+    vol -->|Operational: assigned_to| tsk[Task]
+    
+    tsk -->|Spatial: located_in| zon
+    inc[Incident] -->|Spatial: located_in| gat[Gate]
+    
+    gat -->|Structural: belongs_to| zon
+    team[Medical Team] -->|Operational: assigned_to| inc

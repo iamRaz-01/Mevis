@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Resource Specification Schema",
+  "type": "object",
+  "properties": {
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["Human", "Physical", "Infrastructure", "Knowledge", "Communication", "AI"]
+          },
+          "status": { "type": "string", "enum": ["Available", "Busy", "Offline", "Assigned"] },
+          "current_allocation": { "type": "string" }
+        },
+        "required": ["id", "category", "status"]
+      }
+    }
+  },
+  "required": ["resources"]
+}

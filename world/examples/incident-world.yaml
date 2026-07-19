@@ -1,0 +1,20 @@
+# MEVIS Digital Twin Mock Example
+# Represents active incidents and tracking status snapshot.
+
+incident_tracking:
+  version: 24
+  timestamp: '2026-07-19T13:55:00Z'
+  incidents:
+    - id: 'inc_medical_001'
+      classification: 'MEDICAL_EMERGENCY'
+      severity: 'HIGH'
+      status: 'Active'
+      location_id: 'gat_entry_12'
+
+  relationships:
+    - source_id: 'inc_medical_001'
+      relationship_type: 'Spatial'
+      target_id: 'gat_entry_12'
+    - source_id: 'med_team_3'
+      relationship_type: 'Operational'
+      target_id: 'inc_medical_001'

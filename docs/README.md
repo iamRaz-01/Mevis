@@ -40,6 +40,7 @@ The MEVIS documentation is organized into logical functional folders to make it 
 ### 📐 Engineering & Architecture
 
 - **[Bounded Contexts & Domain Architecture](../architecture/domain/architecture-principles.md)**: Details the canonical logical partition boundaries, RACI matrices, integration rules, and anti-corruption layers.
+- **[World Model & Digital Twin](../world/core/digital-twin.md)**: Details the authoritative representation of reality, spatial hierarchies, resource categorizations, viewpoints, and update lifecycles.
 
 - **[MEVIS Engineering Constitution (MEC)](./engineering/MEVIS%20Product%20Constitution.md)**: Chapter 1 defining the core constitutional authority and the Open Decisions Register (`OD-001` through `OD-008`).
 - **[MEVIS Architecture Specification](./architecture/MEVIS%20Architecture%20Specification%20v1.0.md)**: Details logical bounded contexts, system context maps, database schema outlines, and the Incident State Machine.

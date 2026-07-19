@@ -1,0 +1,10 @@
+flowchart TD
+    %% Ingest sync flowchart
+    sensors[Physical Turnstile/Camera Sensors] -->|Raw Observables| ingest[Twin Ingestion Feed]
+    vols[Volunteer GPS Mobile App] -->|Observation Reports| ingest
+    
+    ingest -->|Hydrate static metadata| sync[State Sync Manager]
+    sync -->|Delta state modification| twin[World State Digital Twin]
+    
+    twin -->|Consolidated State| reasoning[Decision Intelligence reasoning]
+    twin -->|Telemetry readouts| analytics[Analytics Dashboards]

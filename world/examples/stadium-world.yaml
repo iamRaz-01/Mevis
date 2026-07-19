@@ -1,0 +1,23 @@
+# MEVIS Digital Twin Mock Example
+# Represents a stadium world layout snapshot.
+
+stadium_layout:
+  venue_id: 'ven_lusail_01'
+  name: 'Lusail Stadium'
+  spatial_hierarchy:
+    - id: 'sec_north_01'
+      type: 'Sector'
+      parent_id: 'ven_lusail_01'
+    - id: 'zon_north_concourse'
+      type: 'Zone'
+      parent_id: 'sec_north_01'
+    - id: 'gat_entry_12'
+      type: 'Gate'
+      parent_id: 'zon_north_concourse'
+      adjacencies:
+        - 'zon_north_concourse'
+    - id: 'pth_exit_corridor_4'
+      type: 'Pathway'
+      parent_id: 'zon_north_concourse'
+      adjacencies:
+        - 'zon_north_concourse'

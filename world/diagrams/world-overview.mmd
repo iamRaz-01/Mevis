@@ -1,0 +1,25 @@
+graph TD
+    subgraph Core Concepts
+        dt[Digital Twin]
+        wm[World Model]
+        reg[Entity Registry]
+    end
+
+    subgraph Spatial & Temporal Tiers
+        sp[Spatial Hierarchy]
+        tp[Temporal Validity]
+    end
+
+    subgraph Resource Classification
+        hr[Human Resources]
+        phys[Physical Resources]
+        inf[Infrastructure Resources]
+    end
+
+    dt --> wm
+    wm --> reg
+    reg --> sp
+    reg --> tp
+    wm --> hr
+    wm --> phys
+    wm --> inf

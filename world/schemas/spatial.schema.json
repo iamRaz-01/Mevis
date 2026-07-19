@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Spatial Containment Schema",
+  "type": "object",
+  "properties": {
+    "venue_id": { "type": "string", "pattern": "^ven_[a-zA-Z0-9_-]+$" },
+    "spatial_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["Sector", "Zone", "Gate", "Pathway", "Station"] },
+          "parent_id": { "type": "string" },
+          "adjacencies": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["id", "type"]
+      }
+    }
+  },
+  "required": ["venue_id", "spatial_hierarchy"]
+}

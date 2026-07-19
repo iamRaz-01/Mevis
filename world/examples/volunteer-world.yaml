@@ -1,0 +1,22 @@
+# MEVIS Digital Twin Mock Example
+# Represents active volunteers allocation status snapshot.
+
+volunteer_allocation:
+  version: 12
+  timestamp: '2026-07-19T13:55:00Z'
+  resources:
+    - id: 'vol_steward_104'
+      category: 'Human'
+      status: 'Available'
+    - id: 'vol_steward_108'
+      category: 'Human'
+      status: 'Assigned'
+      current_allocation: 'tsk_patrol_north'
+
+  relationships:
+    - source_id: 'vol_steward_104'
+      relationship_type: 'Spatial'
+      target_id: 'zon_north_concourse'
+    - source_id: 'vol_steward_108'
+      relationship_type: 'Operational'
+      target_id: 'tsk_patrol_north'

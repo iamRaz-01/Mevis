@@ -50,6 +50,13 @@ The repository is structured as follows:
 │   ├── ontology.md     # Semantic domain ontology catalog
 │   ├── schemas/        # JSON schemas for all major entities
 │   └── graph/          # Knowledge Graph visualization diagrams (mmd, graphml)
+├── world/              # Canonical world model and stadium Digital Twin
+│   ├── core/           # Core twin, boundary, and update models
+│   ├── models/         # Spatial, temporal, resource, and viewpoint maps
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock snapshot configurations
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Spatial, relationships, and overview Mermaid charts
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

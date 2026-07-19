@@ -1,0 +1,27 @@
+# MEVIS World Invariant Rules
+# Declares conditions that must always remain true in the Digital Twin.
+
+invariants:
+  - id: INV-WORLD-001
+    name: UniqueVolunteerLocation
+    description: 'A volunteer cannot physically occupy two zones simultaneously.'
+    scope: Volunteer
+    rule: 'count(volunteer.locations) <= 1'
+
+  - id: INV-WORLD-002
+    name: UniqueGateContainment
+    description: 'Every Gate belongs to exactly one Zone.'
+    scope: Gate
+    rule: 'count(gate.parent_zone) == 1'
+
+  - id: INV-WORLD-003
+    name: UniqueIncidentLocation
+    description: 'Every Incident occurs at exactly one physical Location.'
+    scope: Incident
+    rule: 'count(incident.location) == 1'
+
+  - id: INV-WORLD-004
+    name: UniqueEntityIdentifier
+    description: 'Every entity in the registry must have a unique identifier.'
+    scope: Global
+    rule: 'is_unique(entity.id)'

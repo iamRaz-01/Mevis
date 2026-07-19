@@ -1,16 +1,12 @@
 {
-  "version": 2,
-  "name": "mevis-dashboard",
-  "buildCommand": "cd apps/dashboard && npm run build",
-  "outputDirectory": "apps/dashboard/.next",
-  "framework": "nextjs",
-  "installCommand": "npm ci",
   "env": {
-    "NEXT_PUBLIC_CONTEXT_SERVICE_URL": {
-      "value": "https://mevis-context-service.up.railway.app"
-    },
-    "NEXT_PUBLIC_GATEWAY_URL": {
-      "value": "https://mevis-gateway.up.railway.app"
+    "NEXT_PUBLIC_CONTEXT_SERVICE_URL": "https://mevis-context-service-production.up.railway.app",
+    "NEXT_PUBLIC_GATEWAY_URL": "https://mevis-gateway-production.up.railway.app"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_CONTEXT_SERVICE_URL": "https://mevis-context-service-production.up.railway.app",
+      "NEXT_PUBLIC_GATEWAY_URL": "https://mevis-gateway-production.up.railway.app"
     }
   }
 }

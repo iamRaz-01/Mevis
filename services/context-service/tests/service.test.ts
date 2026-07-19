@@ -71,6 +71,9 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM model_invocations;");
+    await dbClient.execute("DELETE FROM generation_results;");
+    await dbClient.execute("DELETE FROM generation_requests;");
     await dbClient.execute("DELETE FROM reasoning_steps;");
     await dbClient.execute("DELETE FROM reasoning_plans;");
     await dbClient.execute("DELETE FROM detected_intents;");
@@ -1409,5 +1412,92 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.strictEqual(res.status, 200);
     const list = res.payload.data as any[];
     assert.ok(list.length >= 2);
+  });
+
+  test("114. Verify GET /runtime/ai/models lists registered LLM models", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/models", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 3);
+    assert.strictEqual(list[0].id, "fast-conv-model");
+  });
+
+  test("115. Verify GET /runtime/ai/capabilities lists capability codes", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/capabilities", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.includes("VolunteerAssistant"));
+  });
+
+  test("116. Verify POST /runtime/ai/generate processes execution plans", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/generate",
+      { planId: testPlanId, formatType: "JSON" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.id);
+    assert.strictEqual(data.validationStatus, "VALID");
+    assert.ok(data.generatedText.includes("entrance"));
+  });
+
+  test("117. Verify POST /runtime/ai/report returns situational reports", async () => {
+    // Generate plan first
+    const sessRes = await makeRequest(
+      "POST",
+      "/runtime/ai/session",
+      { userId: masterVolunteerId, activeIncidentId: testIncidentId, activeVenueId: "VENUE-01" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const sessId = sessRes.payload.data.session.id;
+
+    const planRes = await makeRequest(
+      "POST",
+      "/runtime/ai/orchestrate",
+      { sessionId: sessId, query: "Generate report shift overview summary" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const planId = planRes.payload.data.plan.id;
+
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/report",
+      { planId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.generatedText.includes("Shift Situation Incident Report"));
+  });
+
+  test("118. Verify POST /runtime/ai/summarize returns briefings", async () => {
+    // Generate plan first
+    const sessRes = await makeRequest(
+      "POST",
+      "/runtime/ai/session",
+      { userId: masterVolunteerId, activeIncidentId: testIncidentId, activeVenueId: "VENUE-01" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const sessId = sessRes.payload.data.session.id;
+
+    const planRes = await makeRequest(
+      "POST",
+      "/runtime/ai/orchestrate",
+      { sessionId: sessId, query: "Generate daily summary" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const planId = planRes.payload.data.plan.id;
+
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/summarize",
+      { planId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.generatedText.includes("=== MEVIS Shift Briefing ==="));
   });
 });

@@ -52,6 +52,9 @@ import {
   ReasoningPlanRepository,
   ReasoningStepRepository,
   DetectedIntentRepository,
+  GenerationRequestRepository,
+  GenerationResultRepository,
+  ModelInvocationRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -146,6 +149,14 @@ import { ToolSelector } from "./ai/reasoning/tool-selector";
 import { AgentOrchestrator } from "./ai/reasoning/agent-orchestrator";
 import { GraphBuilder } from "./ai/reasoning/graph-builder";
 import { CognitiveOrchestrator } from "./ai/reasoning/orchestrator";
+
+import { CapabilityResolver } from "./ai/generation/capability-resolver";
+import { ModelRouter } from "./ai/generation/model-router";
+import { PromptComposer } from "./ai/generation/prompt-composer";
+import { InferenceEngine } from "./ai/generation/inference-engine";
+import { ResponseValidator } from "./ai/generation/response-validator";
+import { ResponseFormatter } from "./ai/generation/formatter";
+import { GenerationOrchestrator } from "./ai/generation/orchestrator";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -522,6 +533,31 @@ const cognitiveOrchestrator = new CognitiveOrchestrator(
   runtimeToolSelector,
   runtimeAgentOrchestrator,
   runtimeGraphBuilder,
+  reasoningPlanRepo,
+  reasoningStepRepo
+);
+
+const generationRequestRepo = new GenerationRequestRepository(dbClient);
+const generationResultRepo = new GenerationResultRepository(dbClient);
+const modelInvocationRepo = new ModelInvocationRepository(dbClient);
+
+const runtimeCapabilityResolver = new CapabilityResolver();
+const runtimeModelRouter = new ModelRouter();
+const runtimePromptComposer = new PromptComposer();
+const runtimeInferenceEngine = new InferenceEngine();
+const runtimeResponseValidator = new ResponseValidator();
+const runtimeResponseFormatter = new ResponseFormatter();
+
+const generationOrchestrator = new GenerationOrchestrator(
+  runtimeCapabilityResolver,
+  runtimeModelRouter,
+  runtimePromptComposer,
+  runtimeInferenceEngine,
+  runtimeResponseValidator,
+  runtimeResponseFormatter,
+  generationRequestRepo,
+  generationResultRepo,
+  modelInvocationRepo,
   reasoningPlanRepo,
   reasoningStepRepo
 );
@@ -2808,6 +2844,84 @@ const server = http.createServer(async (req, res) => {
       const body = await readJson(req);
       const data = await cognitiveOrchestrator.orchestrate(body.sessionId, body.query);
       return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/generate - Orchestrates text generation from execution plan
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "generate" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await generationOrchestrator.generate(body.planId, body.formatType);
+      return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/report - Report-specific formatting generation
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "report" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await generationOrchestrator.generate(body.planId, "Markdown");
+      return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/summarize - Generates summary from plan details
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "summarize" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await generationOrchestrator.generate(body.planId, "Briefing");
+      return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/explain - Generates natural explanations
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "explain" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await generationOrchestrator.generate(body.planId, "Markdown");
+      return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/recommend - Formats recommendation records
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "recommend" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await generationOrchestrator.generate(body.planId, "Markdown");
+      return sendJson(res, 200, data);
+    }
+
+    // POST /runtime/ai/respond - Employs conversational assistant formatting
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "respond" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await generationOrchestrator.generate(body.planId, "Markdown");
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/ai/models - Lists active system models
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "models" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = generationOrchestrator.router.listModels();
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/ai/capabilities - Lists capability codes
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "capabilities" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = generationOrchestrator.resolver.listCapabilities();
+      return sendJson(res, 200, list);
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

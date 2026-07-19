@@ -737,3 +737,46 @@ export class DetectedIntentRepository extends RelationalRepository<DetectedInten
     super(db, "detected_intents", ["id", "query", "intent_type", "confidence", "created_at"], "DetectedIntent");
   }
 }
+
+export interface GenerationRequestEntity extends Identifiable<string> {
+  id: string;
+  plan_id: string;
+  capability: string;
+  status: string;
+  created_at: string;
+}
+
+export class GenerationRequestRepository extends RelationalRepository<GenerationRequestEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "generation_requests", ["id", "plan_id", "capability", "status", "created_at"], "GenerationRequest");
+  }
+}
+
+export interface GenerationResultEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  generated_text: string;
+  validation_status: string;
+  created_at: string;
+}
+
+export class GenerationResultRepository extends RelationalRepository<GenerationResultEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "generation_results", ["id", "request_id", "generated_text", "validation_status", "created_at"], "GenerationResult");
+  }
+}
+
+export interface ModelInvocationEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  model_name: string;
+  prompt_sent: string;
+  tokens_used: number;
+  latency_ms: number;
+}
+
+export class ModelInvocationRepository extends RelationalRepository<ModelInvocationEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "model_invocations", ["id", "request_id", "model_name", "prompt_sent", "tokens_used", "latency_ms"], "ModelInvocation");
+  }
+}

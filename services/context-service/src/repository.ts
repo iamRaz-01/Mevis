@@ -780,3 +780,81 @@ export class ModelInvocationRepository extends RelationalRepository<ModelInvocat
     super(db, "model_invocations", ["id", "request_id", "model_name", "prompt_sent", "tokens_used", "latency_ms"], "ModelInvocation");
   }
 }
+
+export interface TrustPackageEntity extends Identifiable<string> {
+  id: string;
+  result_id: string;
+  overall_confidence: number;
+  created_at: string;
+}
+
+export class TrustPackageRepository extends RelationalRepository<TrustPackageEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "trust_packages", ["id", "result_id", "overall_confidence", "created_at"], "TrustPackage");
+  }
+}
+
+export interface EvidenceLinkEntity extends Identifiable<string> {
+  id: string;
+  trust_id: string;
+  source_type: string;
+  source_id: string;
+}
+
+export class EvidenceLinkRepository extends RelationalRepository<EvidenceLinkEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "evidence_links", ["id", "trust_id", "source_type", "source_id"], "EvidenceLink");
+  }
+}
+
+export interface ResponseCitationEntity extends Identifiable<string> {
+  id: string;
+  trust_id: string;
+  reference_text: string;
+}
+
+export class ResponseCitationRepository extends RelationalRepository<ResponseCitationEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "response_citations", ["id", "trust_id", "reference_text"], "ResponseCitation");
+  }
+}
+
+export interface ReasoningTraceEntity extends Identifiable<string> {
+  id: string;
+  trust_id: string;
+  step_description: string;
+}
+
+export class ReasoningTraceRepository extends RelationalRepository<ReasoningTraceEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "reasoning_traces", ["id", "trust_id", "step_description"], "ReasoningTrace");
+  }
+}
+
+export interface ConfidenceScoreEntity extends Identifiable<string> {
+  id: string;
+  trust_id: string;
+  dimension: string;
+  score: number;
+}
+
+export class ConfidenceScoreRepository extends RelationalRepository<ConfidenceScoreEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "confidence_scores", ["id", "trust_id", "dimension", "score"], "ConfidenceScore");
+  }
+}
+
+export interface ResponseFeedbackEntity extends Identifiable<string> {
+  id: string;
+  trust_id: string;
+  user_id: string;
+  feedback_type: string;
+  comment: string | null;
+  created_at: string;
+}
+
+export class ResponseFeedbackRepository extends RelationalRepository<ResponseFeedbackEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "response_feedback", ["id", "trust_id", "user_id", "feedback_type", "comment", "created_at"], "ResponseFeedback");
+  }
+}

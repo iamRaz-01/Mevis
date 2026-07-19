@@ -71,6 +71,12 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM response_feedback;");
+    await dbClient.execute("DELETE FROM confidence_scores;");
+    await dbClient.execute("DELETE FROM reasoning_traces;");
+    await dbClient.execute("DELETE FROM response_citations;");
+    await dbClient.execute("DELETE FROM evidence_links;");
+    await dbClient.execute("DELETE FROM trust_packages;");
     await dbClient.execute("DELETE FROM model_invocations;");
     await dbClient.execute("DELETE FROM generation_results;");
     await dbClient.execute("DELETE FROM generation_requests;");
@@ -1499,5 +1505,109 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.strictEqual(res.status, 200);
     const data = res.payload.data;
     assert.ok(data.generatedText.includes("=== MEVIS Shift Briefing ==="));
+  });
+
+  let testTrustId = "";
+
+  test("119. Verify POST /runtime/ai/trust compiles a TrustPackage", async () => {
+    // Generate response first
+    const genRes = await makeRequest(
+      "POST",
+      "/runtime/ai/generate",
+      { planId: testPlanId, formatType: "Markdown" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const resultId = genRes.payload.data.id;
+
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/trust",
+      { resultId, role: "ROLE_COORDINATOR" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.id);
+    testTrustId = data.id;
+    assert.ok(data.overallConfidence >= 0.9);
+    assert.strictEqual(data.evidence.length, 1);
+    assert.strictEqual(data.citations.length, 1);
+  });
+
+  test("120. Verify GET /runtime/ai/evidence/:id returns evidence links", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/evidence/${testTrustId}`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 1);
+    assert.strictEqual(list[0].source_type, "DIGITAL_TWIN");
+  });
+
+  test("121. Verify GET /runtime/ai/citations/:id returns policy citations", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/citations/${testTrustId}`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 1);
+    assert.ok(list[0].reference_text.includes("Policy"));
+  });
+
+  test("122. Verify GET /runtime/ai/confidence/:id returns dimensions detail", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/confidence/${testTrustId}`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 3);
+    assert.strictEqual(list[0].dimension, "KnowledgeFreshness");
+  });
+
+  test("123. Verify GET /runtime/ai/reasoning/:id returns traces detail", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/reasoning/${testTrustId}`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length >= 2);
+  });
+
+  test("124. Verify POST /runtime/ai/feedback logs user feedback review", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/feedback",
+      { trustId: testTrustId, feedbackType: "NOT_HELPFUL", comment: "Incorrect distance calculation" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.id);
+    assert.strictEqual(data.feedbackType, "NOT_HELPFUL");
+  });
+
+  test("125. Verify GET /runtime/ai/personalization returns profile configurations", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/personalization",
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.roles.length, 3);
+    assert.strictEqual(data.profiles[0].role, "ROLE_ADMIN");
   });
 });

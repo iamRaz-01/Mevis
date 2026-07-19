@@ -55,6 +55,12 @@ import {
   GenerationRequestRepository,
   GenerationResultRepository,
   ModelInvocationRepository,
+  TrustPackageRepository,
+  EvidenceLinkRepository,
+  ResponseCitationRepository,
+  ReasoningTraceRepository,
+  ConfidenceScoreRepository,
+  ResponseFeedbackRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -157,6 +163,14 @@ import { InferenceEngine } from "./ai/generation/inference-engine";
 import { ResponseValidator } from "./ai/generation/response-validator";
 import { ResponseFormatter } from "./ai/generation/formatter";
 import { GenerationOrchestrator } from "./ai/generation/orchestrator";
+
+import { EvidenceResolver } from "./ai/trust/evidence-resolver";
+import { CitationEngine } from "./ai/trust/citation-engine";
+import { ReasoningTraceBuilder } from "./ai/trust/trace-builder";
+import { ConfidenceEngine } from "./ai/trust/confidence-engine";
+import { PersonalizationEngine } from "./ai/trust/personalization-engine";
+import { FeedbackEngine } from "./ai/trust/feedback-engine";
+import { TrustOrchestrator } from "./ai/trust/orchestrator";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -561,6 +575,38 @@ const generationOrchestrator = new GenerationOrchestrator(
   reasoningPlanRepo,
   reasoningStepRepo
 );
+
+const trustPackageRepo = new TrustPackageRepository(dbClient);
+const evidenceLinkRepo = new EvidenceLinkRepository(dbClient);
+const responseCitationRepo = new ResponseCitationRepository(dbClient);
+const reasoningTraceRepo = new ReasoningTraceRepository(dbClient);
+const confidenceScoreRepo = new ConfidenceScoreRepository(dbClient);
+const responseFeedbackRepo = new ResponseFeedbackRepository(dbClient);
+
+const runtimeEvidenceResolver = new EvidenceResolver();
+const runtimeCitationEngine = new CitationEngine();
+const runtimeTraceBuilder = new ReasoningTraceBuilder();
+const runtimeConfidenceEngine = new ConfidenceEngine();
+const runtimePersonalizationEngine = new PersonalizationEngine();
+
+const trustOrchestrator = new TrustOrchestrator(
+  runtimeEvidenceResolver,
+  runtimeCitationEngine,
+  runtimeTraceBuilder,
+  runtimeConfidenceEngine,
+  runtimePersonalizationEngine,
+  trustPackageRepo,
+  evidenceLinkRepo,
+  responseCitationRepo,
+  reasoningTraceRepo,
+  confidenceScoreRepo,
+  generationResultRepo,
+  generationRequestRepo,
+  reasoningPlanRepo,
+  reasoningStepRepo
+);
+
+const feedbackEngine = new FeedbackEngine(responseFeedbackRepo);
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -2922,6 +2968,82 @@ const server = http.createServer(async (req, res) => {
       }
       const list = generationOrchestrator.resolver.listCapabilities();
       return sendJson(res, 200, list);
+    }
+
+    // POST /runtime/ai/trust - Enrich generated response into TrustPackage
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "trust" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await trustOrchestrator.buildTrustPackage(body.resultId, body.role);
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/ai/evidence/:id - Lists evidence links by trust ID
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "evidence" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await evidenceLinkRepo.findAll();
+      const filtered = list.filter((e) => e.trust_id === segments[3]);
+      return sendJson(res, 200, filtered);
+    }
+
+    // GET /runtime/ai/citations/:id - Lists citations by trust ID
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "citations" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await responseCitationRepo.findAll();
+      const filtered = list.filter((e) => e.trust_id === segments[3]);
+      return sendJson(res, 200, filtered);
+    }
+
+    // GET /runtime/ai/confidence/:id - Details confidence score dimensions by trust ID
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "confidence" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await confidenceScoreRepo.findAll();
+      const filtered = list.filter((e) => e.trust_id === segments[3]);
+      return sendJson(res, 200, filtered);
+    }
+
+    // GET /runtime/ai/reasoning/:id - Details reasoning traces by trust ID
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "reasoning" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = await reasoningTraceRepo.findAll();
+      const filtered = list.filter((e) => e.trust_id === segments[3]);
+      return sendJson(res, 200, filtered);
+    }
+
+    // POST /runtime/ai/feedback - Submits user feedback
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "feedback" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await feedbackEngine.submitFeedback(body.trustId, ctx.actorId || "VOL-system", body.feedbackType, body.comment);
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/ai/personalization - Lists role presentation mappings
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "personalization" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const data = {
+        roles: ["ROLE_ADMIN", "ROLE_COORDINATOR", "ROLE_USER"],
+        profiles: [
+          trustOrchestrator.personalizationEngine.getProfileMetadata("ROLE_ADMIN"),
+          trustOrchestrator.personalizationEngine.getProfileMetadata("ROLE_COORDINATOR"),
+          trustOrchestrator.personalizationEngine.getProfileMetadata("ROLE_USER"),
+        ]
+      };
+      return sendJson(res, 200, data);
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

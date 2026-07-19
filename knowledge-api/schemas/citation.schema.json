@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Citation Segment Schema",
+  "type": "object",
+  "properties": {
+    "citation_id": { "type": "string" },
+    "document_ref": { "type": "string" },
+    "section": { "type": "string" },
+    "version": { "type": "string" }
+  },
+  "required": ["citation_id", "document_ref", "section", "version"]
+}

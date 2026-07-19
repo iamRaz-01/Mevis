@@ -1,0 +1,14 @@
+# MEVIS API Contract Example
+# Represents a client requesting volunteer rest rules.
+
+query_envelope:
+  client_id: 'client_shift_planning_04'
+  query_intent: 'steward break rules when fatigue levels exceed thresholds'
+  domain_filter: 'Volunteer'
+  min_trust_rating: 0.80
+
+evidence_delivery:
+  package_id: 'pkg_delivered_vol_112'
+  citations:
+    - chunk_id: 'kn_volunteer_handbook_03_chunk_02'
+      content_text: 'Register volunteer check-in coordinates. Request rest break intervals if fatigue metrics exceed bounds.'

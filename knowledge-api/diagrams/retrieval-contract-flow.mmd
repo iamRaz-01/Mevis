@@ -1,0 +1,8 @@
+sequenceDiagram
+    autonumber
+    Downstream Client->>API Router: Submit Query Request
+    API Router->>Retrieval Engine: Resolve intents matching coordinates
+    Retrieval Engine-->>API Router: Candidate chunks list
+    API Router->>Validation Framework: Verify authority credentials
+    Validation Framework-->>API Router: Verified outcomes
+    API Router-->>Downstream Client: Dispatch Evidence Package

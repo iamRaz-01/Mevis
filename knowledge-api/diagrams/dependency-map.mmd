@@ -1,0 +1,5 @@
+flowchart TD
+    client[Downstream AI Subsystem] -->|Contracts API| api[Logical API Contracts]
+    api -->|Depends on| ingest[Ingestion Pipeline]
+    api -->|Depends on| search[Retrieval indexing]
+    api -->|Depends on| val[Validation framework]

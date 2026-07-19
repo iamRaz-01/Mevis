@@ -1,0 +1,8 @@
+# MEVIS API Contract Example
+# Represents citation fields packaging verified links metadata.
+
+citation_package:
+  citation_id: 'cit_package_med_304'
+  document_ref: 'Cardiac_Emergency_Response_SOP.pdf'
+  section: 'Section 2.1: Defibrillator Deployment'
+  version: 'v1.2.0'

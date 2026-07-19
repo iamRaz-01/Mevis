@@ -1,0 +1,7 @@
+flowchart TD
+    in[API Query Request] --> router{Route check}
+    router -- "IncidentResponse" --> route1[Match medical/security index]
+    router -- "ShiftPlanning" --> route2[Match volunteer index]
+    
+    route1 --> compile[Compile Evidence Package]
+    route2 --> compile

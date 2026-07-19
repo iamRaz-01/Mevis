@@ -1,0 +1,8 @@
+# MEVIS API Contract Example
+# Represents requesting historical SemVer versions.
+
+version_request:
+  client_id: 'client_audit_compliance_02'
+  target_asset_id: 'kn_medical_sop_01'
+  desired_version: 'v1.2.0'
+  historical_only: true

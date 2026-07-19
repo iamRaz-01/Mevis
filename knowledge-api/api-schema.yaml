@@ -1,0 +1,12 @@
+# MEVIS Knowledge Layer OpenAPI Contract Representation
+openapi: '3.0.0'
+info:
+  title: 'MEVIS Knowledge Intelligence API'
+  version: '1.0.0'
+paths:
+  /evidence/query:
+    post:
+      summary: 'Query evidence packages'
+      responses:
+        '200':
+          description: 'Evidence compiled successfully'

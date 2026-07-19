@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Knowledge API Query Request Schema",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "query_intent": { "type": "string" },
+    "domain_filter": { "type": "string" },
+    "min_trust_rating": { "type": "number" }
+  },
+  "required": ["client_id", "query_intent", "domain_filter", "min_trust_rating"]
+}

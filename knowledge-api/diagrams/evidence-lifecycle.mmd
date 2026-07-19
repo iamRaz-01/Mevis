@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> Submitted : query credentials validated
+    Submitted --> Fetched : candidate chunks retrieved
+    Fetched --> Verified : trust audits complete
+    Verified --> Delivered : dispatched to downstreams
+    
+    Delivered --> [*]

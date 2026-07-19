@@ -1,0 +1,8 @@
+flowchart LR
+    client[Downstream AI Subsystem] -->|Query/Subscription request| api[Logical API Contract Boundary]
+    api -->|Validated Evidence Package| client
+    
+    subgraph Knowledge Intelligence Layer
+        api --> search[Retrieval indexing engine]
+        search --> val[Validation checks framework]
+    end

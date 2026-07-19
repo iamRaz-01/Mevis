@@ -1,0 +1,14 @@
+# MEVIS API Contract Example
+# Represents a client requesting cardiac response steps.
+
+query_envelope:
+  client_id: 'client_decision_intel_01'
+  query_intent: 'CPR and AED deployment guidelines for unconscious volunteers'
+  domain_filter: 'Medical'
+  min_trust_rating: 0.90
+
+evidence_delivery:
+  package_id: 'pkg_delivered_med_801'
+  citations:
+    - chunk_id: 'kn_medical_sop_01_chunk_01'
+      content_text: 'Dispatch nearest volunteer certified in CPR. Retrieve AED from Zone medical cabinet.'

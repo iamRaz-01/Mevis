@@ -1,0 +1,8 @@
+# MEVIS API Contract Example
+# Represents logical update annotation parameters.
+
+update_request:
+  client_id: 'client_governance_portal'
+  target_chunk: 'kn_medical_sop_01_chunk_01'
+  annotation_text: 'Updated AED checklist coordinates tag to cabinet B-12.'
+  authority_token: 'auth_token_governance_super_01'

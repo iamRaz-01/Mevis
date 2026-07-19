@@ -2,7 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "baseUrl": ".",
+    "paths": {
+      "@mevis/shared-types": ["../shared-types/src/index.ts"]
+    }
   },
   "include": ["src/**/*", "tests/**/*"],
   "references": [{ "path": "../shared-types" }]

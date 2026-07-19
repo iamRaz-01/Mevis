@@ -1,0 +1,16 @@
+# MEVIS Validation Framework Example
+# Represents context with low overall composite confidence scores.
+
+validation_report:
+  context_id: 'ctx_volunteer_patrol_104'
+  outcome: 'Valid with Warnings'
+  timestamp: '2026-07-19T14:20:00Z'
+  metrics:
+    completeness: 1.0
+    freshness: 0.85
+    consistency: 1.0
+    confidence: 0.55
+  warnings:
+    - code: 'LOW_COMPOSITE_CONFIDENCE'
+      target: 'vol_steward_104'
+      message: 'Composite confidence falls below threshold; verification updates recommended.'

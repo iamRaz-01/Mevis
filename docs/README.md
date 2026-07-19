@@ -44,6 +44,7 @@ The MEVIS documentation is organized into logical functional folders to make it 
 - **[World State Engine](../world-state/world-state-schema.md)**: Details the canonical structures of live operational state, snapshot classifications, update deltas, synchronization states, and versioning lineage.
 - **[Context Intelligence Architecture](../context/context-model.md)**: Details context models, taxonomies, containment hierarchies, composition formulas, and prioritization levels.
 - **[Context Builder Pipeline](../context-builder/pipeline.md)**: Details the logical ingestion normalizer, entity resolution, lookups, policy enrichments, validation tests, and quality scores.
+- **[Context Validation & Quality Framework](../context-validation/validation-rules.md)**: Details context validation pipeline rules, completeness metrics, freshness thresholds, consistency invariants, contradiction detections, and validation outcomes.
 
 - **[MEVIS Engineering Constitution (MEC)](./engineering/MEVIS%20Product%20Constitution.md)**: Chapter 1 defining the core constitutional authority and the Open Decisions Register (`OD-001` through `OD-008`).
 - **[MEVIS Architecture Specification](./architecture/MEVIS%20Architecture%20Specification%20v1.0.md)**: Details logical bounded contexts, system context maps, database schema outlines, and the Incident State Machine.

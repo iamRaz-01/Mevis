@@ -1,0 +1,16 @@
+# MEVIS Validation Framework Example
+# Represents context with unresolved overlapping reports.
+
+validation_report:
+  context_id: 'ctx_concourse_block_402'
+  outcome: 'Requires Manual Review'
+  timestamp: '2026-07-19T14:20:00Z'
+  metrics:
+    completeness: 0.95
+    freshness: 0.90
+    consistency: 0.50
+    confidence: 0.60
+  errors:
+    - code: 'CONTRADICTING_SOURCE_TELEMETRY'
+      target: 'zon_north_concourse'
+      message: 'Turnstile counts indicate low density (0.12) while coordinator reports crowd crush.'

@@ -1,0 +1,9 @@
+flowchart TD
+    in1[Telemetry A: GPS] --> compare{Compare locations}
+    in2[Telemetry B: CCTV] --> compare
+    
+    compare -- "Consistent" --> merge[Apply to Context]
+    compare -- "Contradiction" --> resolve{Apply Trust Precedence}
+    
+    resolve -- "Resolvable" --> merge
+    resolve -- "Unresolved conflict" --> review[Escalate: Requires Manual Review]

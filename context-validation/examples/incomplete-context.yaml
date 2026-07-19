@@ -1,0 +1,16 @@
+# MEVIS Validation Framework Example
+# Represents context failing completeness validation.
+
+validation_report:
+  context_id: 'ctx_patrol_assignment_105'
+  outcome: 'Requires Enrichment'
+  timestamp: '2026-07-19T14:20:00Z'
+  metrics:
+    completeness: 0.60
+    freshness: 0.90
+    consistency: 1.0
+    confidence: 0.80
+  errors:
+    - code: 'MISSING_REQUIRED_ENTITY'
+      target: 'vol_steward_105'
+      message: 'Required volunteer profile not included in shift assignment scope.'

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Context Validation Config Schema",
+  "type": "object",
+  "properties": {
+    "validation_rules": {
+      "type": "object",
+      "properties": {
+        "pipeline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "stage": { "type": "string" },
+              "mandatory": { "type": "boolean" }
+            },
+            "required": ["stage", "mandatory"]
+          }
+        }
+      },
+      "required": ["pipeline"]
+    }
+  },
+  "required": ["validation_rules"]
+}

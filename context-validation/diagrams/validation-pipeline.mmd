@@ -1,0 +1,11 @@
+flowchart TD
+    ctx[Context Payload Object] --> stage1[Schema check]
+    stage1 --> stage2[Completeness validation]
+    stage2 --> stage3[Freshness checking]
+    stage3 --> stage4[Consistency checks]
+    
+    stage4 --> stage5[Contradiction filter]
+    stage5 --> stage6[Confidence grading]
+    stage6 --> stage7[Quality score compiler]
+    
+    stage7 --> output[Publish validated report]

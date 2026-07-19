@@ -1,0 +1,10 @@
+# MEVIS Canonical Validation Configuration Schema Map
+
+validation_rules:
+  pipeline:
+    - stage: 'schema'
+      mandatory: true
+    - stage: 'completeness'
+      mandatory: true
+    - stage: 'freshness'
+      mandatory: true

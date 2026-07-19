@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> Evaluating : Context Validation Triggered
+    
+    Evaluating --> Valid : Checks pass
+    Evaluating --> ValidWithWarnings : Low confidence/stale warnings exist
+    Evaluating --> RequiresEnrichment : Missing optional metrics
+    Evaluating --> RequiresManualReview : Unresolved telemetry contradictions
+    Evaluating --> Invalid : Critical safety policy missing
+    
+    Valid --> [*]
+    ValidWithWarnings --> [*]
+    RequiresEnrichment --> [*]
+    RequiresManualReview --> [*]
+    Invalid --> [*]

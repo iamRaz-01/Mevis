@@ -1,0 +1,16 @@
+# MEVIS Validation Framework Example
+# Represents context failing freshness thresholds.
+
+validation_report:
+  context_id: 'ctx_weather_evacuation_003'
+  outcome: 'Valid with Warnings'
+  timestamp: '2026-07-19T14:20:00Z'
+  metrics:
+    completeness: 1.0
+    freshness: 0.40
+    consistency: 1.0
+    confidence: 0.70
+  warnings:
+    - code: 'STALE_TELEMETRY_WARNING'
+      target: 'weather_observation'
+      message: 'Weather observation age exceeds freshness threshold (320 seconds).'

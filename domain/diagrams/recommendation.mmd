@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> Draft : Compiled by AI Orchestrator
+    Draft --> Validating : evt_policy_validation_started
+    
+    Validating --> Ready : evt_policy_passed [Policy engine positive check]
+    Validating --> Rejected : evt_policy_failed / timeout (3 sec fail-closed)
+    
+    Ready --> Released : evt_recommendation_released [Confidence threshold met]
+    
+    Released --> Accepted : dec_recommendation_approved [Supervisor click]
+    Released --> Rejected : dec_recommendation_rejected / decision override

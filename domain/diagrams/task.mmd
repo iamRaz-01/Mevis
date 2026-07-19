@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Assigned : System matches Available volunteer
+    Assigned --> Acknowledged : evt_task_acknowledged [Volunteer client]
+    Acknowledged --> InProgress : evt_task_started [Volunteer transit starts]
+    
+    InProgress --> Completed : evt_task_completed [Location verification]
+    InProgress --> Failed : evt_task_failed [Blocked / Override]
+    Assigned --> Failed : Acknowledgment Timeout (3 min)

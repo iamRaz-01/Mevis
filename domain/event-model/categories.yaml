@@ -1,0 +1,48 @@
+# MEVIS Event Categories and Scopes
+# Defines functional namespaces and their respective bounded context owners.
+
+categories:
+  - namespace: Volunteer
+    owner: 'Volunteer Management'
+    description: 'Volunteer status checks, location tracking, and presence events.'
+    visibility: INTERNAL
+
+  - namespace: Incident
+    owner: 'Incident Management'
+    description: 'Incident state machine progression, triage alerts, and task dispatches.'
+    visibility: INTERNAL
+
+  - namespace: Medical
+    owner: 'Incident Management'
+    description: 'Triage tri-colors, medical dispatch requests, and stabilizer records.'
+    visibility: RESTRICTED
+
+  - namespace: Security
+    owner: 'Operations Command'
+    description: 'Security alerts, intrusion detection, gate lock commands, and crowd bottlenecks.'
+    visibility: SECURE
+
+  - namespace: Infrastructure
+    owner: 'World State'
+    description: 'Hardware telemetry, camera outages, turnstile scanner telemetry.'
+    visibility: INTERNAL
+
+  - namespace: Weather
+    owner: 'World State'
+    description: 'Severe weather alerts, environmental indices.'
+    visibility: PUBLIC
+
+  - namespace: Communication
+    owner: 'Operations Command'
+    description: 'Operator broadcasts, alert push delivery reports.'
+    visibility: INTERNAL
+
+  - namespace: Transport
+    owner: 'World State'
+    description: 'Bus delay warnings, parking levels, gate flow changes.'
+    visibility: PUBLIC
+
+  - namespace: Accessibility
+    owner: 'Volunteer Management'
+    description: 'ADA assistance logs, route blockage reports.'
+    visibility: PUBLIC

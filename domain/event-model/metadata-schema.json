@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Event Metadata Contract",
+  "type": "object",
+  "properties": {
+    "event_id": { "type": "string", "pattern": "^evt_[a-zA-Z0-9_-]+$" },
+    "correlation_id": { "type": "string" },
+    "causation_id": { "type": ["string", "null"] },
+    "parent_event_id": { "type": ["string", "null"] },
+    "child_event_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "timestamp_event": { "type": "string", "format": "date-time" },
+    "timestamp_processing": { "type": "string", "format": "date-time" },
+    "schema_version": { "type": "string" },
+    "event_version": { "type": "string" },
+    "deprecated": { "type": "boolean", "default": false },
+    "priority": { "type": "string", "enum": ["LOW", "NORMAL", "HIGH", "CRITICAL"] },
+    "severity": { "type": "string", "enum": ["INFORMATIONAL", "WARNING", "MAJOR", "CRITICAL"] },
+    "source": {
+      "type": "string",
+      "enum": [
+        "Volunteer App",
+        "Coordinator Console",
+        "Supervisor App",
+        "AI Engine",
+        "Sensor",
+        "Camera",
+        "External API"
+      ]
+    },
+    "source_trust": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "context": {
+      "type": "object",
+      "properties": {
+        "venue_id": { "type": ["string", "null"] },
+        "zone_id": { "type": ["string", "null"] },
+        "gate_id": { "type": ["string", "null"] },
+        "incident_id": { "type": ["string", "null"] },
+        "volunteer_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "simulation": {
+      "type": "object",
+      "properties": {
+        "supported": { "type": "boolean", "default": true },
+        "synthetic_generation": { "type": "boolean", "default": true },
+        "replay": { "type": "boolean", "default": true }
+      },
+      "required": ["supported", "synthetic_generation", "replay"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "event_id",
+    "correlation_id",
+    "timestamp_event",
+    "schema_version",
+    "event_version",
+    "priority",
+    "severity",
+    "source",
+    "source_trust",
+    "simulation"
+  ],
+  "additionalProperties": false
+}

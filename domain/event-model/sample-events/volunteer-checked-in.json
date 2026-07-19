@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "event_id": "evt_volcheckin_001",
+    "correlation_id": "corr_shift_vol_409",
+    "causation_id": null,
+    "parent_event_id": null,
+    "child_event_ids": [],
+    "timestamp_event": "2026-07-19T13:30:00Z",
+    "schema_version": "1.0",
+    "event_version": "1.0",
+    "priority": "NORMAL",
+    "severity": "INFORMATIONAL",
+    "source": "Volunteer App",
+    "source_trust": 0.85,
+    "context": {
+      "venue_id": "ven_stadium_01",
+      "zone_id": "zon_north_concourse",
+      "gate_id": "gat_entry_04",
+      "incident_id": null,
+      "volunteer_id": "vol_steward_104"
+    },
+    "simulation": {
+      "supported": true,
+      "synthetic_generation": true,
+      "replay": true
+    }
+  },
+  "event_type": "evt_volunteer_checked_in",
+  "payload": {
+    "entity_id": "vol_steward_104",
+    "state_before": "Registered",
+    "state_after": "Checked-In",
+    "details": {
+      "scanner_id": "scan_turnstile_41",
+      "shift_id": "shf_morning_0904"
+    }
+  }
+}

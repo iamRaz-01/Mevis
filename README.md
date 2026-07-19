@@ -31,6 +31,14 @@ The repository is structured as follows:
 │   ├── adr/            # Architecture Decision Records registry
 │   ├── standards/      # Coding, repository, and naming standards
 │   └── development/    # Git, branching, and PR workflows
+├── domain/             # Canonical state machines, events, and timelines
+│   ├── state-models/   # Entity lifecycle state machines (volunteer, incident, etc.)
+│   ├── event-model/    # Event taxonomy catalog and Draft-07 schemas
+│   ├── timelines/      # Cross-domain operational scenarios (medical, crowd surge, etc.)
+│   ├── transition-rules/ # State transition rules YAML constraints
+│   ├── simulations/    # Simulation metadata scenario configurations
+│   ├── validation/     # Semantic validation scripts (verify_semantics.py)
+│   └── diagrams/       # Lifecycle Mermaid statecharts
 ├── ontology/           # Canonical domain ontology, schemas, and graph configurations
 │   ├── ontology.md     # Semantic domain ontology catalog
 │   ├── schemas/        # JSON schemas for all major entities

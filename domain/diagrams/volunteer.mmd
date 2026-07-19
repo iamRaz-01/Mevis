@@ -1,0 +1,19 @@
+stateDiagram-v2
+    [*] --> Registered
+    Registered --> Verified : evt_volunteer_verified [Admin/Coordinator]
+    Verified --> CheckedIn : evt_volunteer_checked_in [Volunteer QR scan]
+    CheckedIn --> Available : Setup complete
+    
+    Available --> Busy : evt_task_assigned [System/Coordinator]
+    Busy --> Available : evt_task_completed / evt_task_failed
+    
+    Available --> Break : evt_break_started [Volunteer request]
+    Break --> Available : evt_break_ended [Break timeout / manual]
+    
+    Available --> CheckedOut : evt_volunteer_checked_out
+    CheckedOut --> Inactive : Post-event deactivation
+    
+    state Busy {
+        ActiveRunning --> ConnectionLost : Net drop
+        ConnectionLost --> ActiveRunning : Reconnected
+    }

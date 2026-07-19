@@ -1,0 +1,43 @@
+# MEVIS Self-Healing Recovery State Transitions
+# Details fallback and recovery behavior for physical stadium operational failures.
+
+recovery_transitions:
+  - entity: Volunteer
+    from: Busy
+    to: ConnectionLost
+    trigger: evt_volunteer_network_lost
+    action: 'Retain current task locks. Set offline cached status on mobile client.'
+    recovery_path:
+      event: evt_volunteer_network_restored
+      target_state: Busy
+      fallback_timeout: 600 # 10 minutes fallback. If timeout, trigger volunteer_checkout and reassignment.
+
+  - entity: Task
+    from: InProgress
+    to: Failed
+    trigger: evt_volunteer_unavailable
+    action: 'Roll back task state. Unlock volunteer capacity.'
+    recovery_path:
+      event: evt_task_reassigned
+      target_state: Assigned
+      reassignment_strategy: 'AI suggests next closest Available volunteer.'
+
+  - entity: Incident
+    from: Actioned
+    to: Assessed
+    trigger: evt_task_failed
+    action: 'Roll back incident. If critical severity, notify Coordinator station immediately.'
+    recovery_path:
+      event: evt_recommendation_regenerated
+      target_state: RecommendationReady
+      strategy: 'AI recalculates based on failed task outcome context.'
+
+  - entity: Recommendation
+    from: Validating
+    to: Rejected
+    trigger: evt_policy_engine_timeout
+    action: 'Safety fail-closed rule triggered.'
+    recovery_path:
+      event: evt_policy_engine_retry
+      target_state: Validating
+      fallback_timeout: 3 # Fail-closed timeout SLA.

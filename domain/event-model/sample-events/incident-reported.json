@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "event_id": "evt_increport_201",
+    "correlation_id": "corr_incident_med_504",
+    "causation_id": null,
+    "parent_event_id": null,
+    "child_event_ids": ["evt_inccat_202"],
+    "timestamp_event": "2026-07-19T13:32:00Z",
+    "schema_version": "1.0",
+    "event_version": "1.0",
+    "priority": "HIGH",
+    "severity": "WARNING",
+    "source": "Volunteer App",
+    "source_trust": 0.8,
+    "context": {
+      "venue_id": "ven_stadium_01",
+      "zone_id": "zon_north_concourse",
+      "gate_id": "gat_entry_04",
+      "incident_id": null,
+      "volunteer_id": "vol_steward_104"
+    },
+    "simulation": {
+      "supported": true,
+      "synthetic_generation": true,
+      "replay": true
+    }
+  },
+  "event_type": "evt_incident_reported",
+  "payload": {
+    "entity_id": "inc_2026_0904",
+    "state_before": null,
+    "state_after": "Detected",
+    "details": {
+      "raw_text": "A spectator has collapsed near entry gate B12. Appears unconscious.",
+      "category_reported": "Medical"
+    }
+  }
+}

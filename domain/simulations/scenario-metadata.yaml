@@ -1,0 +1,77 @@
+# MEVIS Simulation Scenario Metadata
+# Configures simulator engines for testing, validation, and AI evaluation runs.
+
+scenarios:
+  - id: sim_medical_emergency
+    name: 'Medical Emergency'
+    description: 'Replays spectator collapses at gate portals to evaluate medical dispatch workflows.'
+    simulation_supported: true
+    synthetic_generation: true
+    replay_supported: true
+    randomizable: true
+    timeline_reference: 'domain/timelines/medical-emergency.md'
+    seed_parameters:
+      - param: gate_location
+        type: string
+        default: 'gat_entry_04'
+      - param: patient_age
+        type: integer
+        range: [1, 100]
+      - param: triage_category
+        type: string
+        enum: [Minor, Delayed, Immediate, Deceased]
+
+  - id: sim_crowd_surge
+    name: 'Crowd Surge turnstile bottleneck'
+    description: 'Simulates high ingress flow spikes to evaluate dynamic safety rules and gate closures.'
+    simulation_supported: true
+    synthetic_generation: true
+    replay_supported: true
+    randomizable: true
+    timeline_reference: 'domain/timelines/crowd-surge.md'
+    seed_parameters:
+      - param: target_gate
+        type: string
+        default: 'gat_entry_03'
+      - param: flow_rate_inflow
+        type: integer
+        range: [50, 200]
+
+  - id: sim_lost_child
+    name: 'Missing Child'
+    description: 'Evaluates child descriptions broadcast propagation and volunteer search loops.'
+    simulation_supported: true
+    synthetic_generation: true
+    replay_supported: true
+    randomizable: true
+    timeline_reference: 'domain/timelines/lost-child.md'
+    seed_parameters:
+      - param: last_seen_zone
+        type: string
+        default: 'zon_north_concourse'
+
+  - id: sim_security_threat
+    name: 'Security Breach Sweep'
+    description: 'Simulates fence breaches and locks validation states.'
+    simulation_supported: true
+    synthetic_generation: true
+    replay_supported: true
+    randomizable: false
+    timeline_reference: 'domain/timelines/security-threat.md'
+    seed_parameters:
+      - param: breach_gate
+        type: string
+        default: 'gat_entry_02'
+
+  - id: sim_weather_evacuation
+    name: 'Severe Weather Evacuation'
+    description: 'Replays lightning warnings to test evacuation shelter routing and gate overrides.'
+    simulation_supported: true
+    synthetic_generation: false # evacuation patterns are deterministic based on safety regulations
+    replay_supported: true
+    randomizable: false
+    timeline_reference: 'domain/timelines/weather-evacuation.md'
+    seed_parameters:
+      - param: storm_distance_km
+        type: number
+        range: [0.1, 5.0]

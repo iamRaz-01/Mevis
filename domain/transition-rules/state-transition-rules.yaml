@@ -1,0 +1,129 @@
+# MEVIS Canonical Transition Rules
+# Maps allowed transitions with events, conditions, roles, and AI/Human approval hooks.
+
+transitions:
+  # Volunteer Transitions
+  - entity: Volunteer
+    from: Available
+    to: Busy
+    trigger: evt_task_assigned
+    conditions:
+      - 'volunteer.current_shift_id != null'
+      - 'volunteer.active_task_id == null'
+    permissions: [System, Coordinator]
+    ai_involvement:
+      required: false
+      role: 'None'
+    human_approval:
+      required: false
+
+  - entity: Volunteer
+    from: Busy
+    to: Available
+    trigger: evt_task_completed
+    conditions:
+      - 'volunteer.active_task_id != null'
+    permissions: [System, Volunteer, Supervisor]
+    ai_involvement:
+      required: false
+      role: 'None'
+    human_approval:
+      required: false
+
+  # Incident Transitions
+  - entity: Incident
+    from: Detected
+    to: Assessed
+    trigger: evt_incident_assessed
+    conditions:
+      - 'incident.severity != null'
+      - 'incident.classification != null'
+    permissions: [System, Coordinator, Supervisor]
+    ai_involvement:
+      required: true
+      role: 'Auto-classification and severity prediction'
+      confidence_threshold: 0.90
+    human_approval:
+      required: false # fallback to operator triage if AI confidence < 90%
+
+  - entity: Incident
+    from: Assessed
+    to: RecommendationReady
+    trigger: evt_recommendation_generated
+    conditions:
+      - 'incident.context_id != null'
+    permissions: [System]
+    ai_involvement:
+      required: true
+      role: 'SOP retrieval and recommendation compilation'
+      confidence_threshold: 0.80
+    human_approval:
+      required: false
+
+  - entity: Incident
+    from: RecommendationReady
+    to: HumanApproved
+    trigger: evt_recommendation_approved
+    conditions:
+      - "recommendation.status == 'Ready' || recommendation.status == 'Released'"
+    permissions: [Supervisor, Coordinator]
+    ai_involvement:
+      required: false
+      role: 'None'
+    human_approval:
+      required: true
+      role: Supervisor
+
+  - entity: Incident
+    from: HumanApproved
+    to: Actioned
+    trigger: evt_tasks_dispatched
+    conditions:
+      - 'incident.task_ids.length >= 1'
+    permissions: [System]
+    ai_involvement:
+      required: false
+      role: 'None'
+    human_approval:
+      required: false
+
+  # Task Transitions
+  - entity: Task
+    from: Assigned
+    to: Acknowledged
+    trigger: evt_task_acknowledged
+    conditions: []
+    permissions: [Volunteer]
+    ai_involvement:
+      required: false
+      role: 'None'
+    human_approval:
+      required: false
+
+  - entity: Task
+    from: Acknowledged
+    to: InProgress
+    trigger: evt_task_started
+    conditions:
+      - 'volunteer.location_drift_within_limits == true'
+    permissions: [Volunteer]
+    ai_involvement:
+      required: true
+      role: 'Geofence confirmation'
+      confidence_threshold: 0.95
+    human_approval:
+      required: false
+
+  # Recommendation Transitions
+  - entity: Recommendation
+    from: Validating
+    to: Ready
+    trigger: evt_policy_passed
+    conditions:
+      - 'policy_engine.checks_passed == true'
+    permissions: [System]
+    ai_involvement:
+      required: false
+      role: 'None'
+    human_approval:
+      required: false

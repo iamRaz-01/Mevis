@@ -1,0 +1,58 @@
+# MEVIS Blacklisted/Forbidden State Transitions
+# Declares invalid state changes that must be blocked by validation filters.
+
+forbidden_transitions:
+  - entity: Volunteer
+    from: Registered
+    to: Busy
+    reason: 'A volunteer must check in and verify their shift before taking assignments.'
+
+  - entity: Volunteer
+    from: Checked-Out
+    to: Available
+    reason: 'Cannot return to Available from Checked-Out without checking in for a new shift.'
+
+  - entity: Volunteer
+    from: Busy
+    to: Break
+    reason: 'Cannot take a break while actively executing a task. Complete or fail task first.'
+
+  - entity: Incident
+    from: Detected
+    to: Resolved
+    reason: 'Skip assessment and dispatch checks. Incident must be assessed, approved, and actioned first.'
+
+  - entity: Incident
+    from: Actioned
+    to: RecommendationReady
+    reason: 'Cannot regenerate recommendations while tasks are active in the field.'
+
+  - entity: Incident
+    from: Resolved
+    to: Assessed
+    reason: 'Reopening resolved incident is forbidden. A new incident must be registered.'
+
+  - entity: Task
+    from: Assigned
+    to: Completed
+    reason: 'Cannot skip Acknowledged and InProgress states.'
+
+  - entity: Task
+    from: Completed
+    to: InProgress
+    reason: 'Completed tasks are immutable and cannot be restarted.'
+
+  - entity: Task
+    from: Failed
+    to: Completed
+    reason: 'Failed tasks are dead. A new task instance must be dispatched instead.'
+
+  - entity: Recommendation
+    from: Draft
+    to: Released
+    reason: 'Cannot display advice without policy and safety validation checks passing.'
+
+  - entity: Recommendation
+    from: Accepted
+    to: Rejected
+    reason: 'Accepted recommendations are committed and cannot be rejected afterwards.'

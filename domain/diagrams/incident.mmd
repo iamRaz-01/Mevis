@@ -1,0 +1,15 @@
+stateDiagram-v2
+    [*] --> Detected : Observation ingested
+    Detected --> Assessed : evt_incident_assessed [Auto-triage / Operator]
+    Assessed --> RecommendationReady : evt_recommendation_generated [AI Orchestrator]
+    
+    RecommendationReady --> HumanApproved : evt_recommendation_approved [Supervisor]
+    RecommendationReady --> HumanRejected : evt_recommendation_rejected [Supervisor]
+    
+    HumanRejected --> Assessed : Re-evaluate Context
+    HumanApproved --> Actioned : evt_tasks_dispatched [Tasks active]
+    
+    Actioned --> Resolved : evt_incident_resolved [All tasks completed]
+    Actioned --> Assessed : Re-dispatch Loop [Task execution failed]
+    
+    Resolved --> Learned : evt_learning_logged [Post-incident check]

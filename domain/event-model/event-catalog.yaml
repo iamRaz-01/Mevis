@@ -1,0 +1,93 @@
+# MEVIS Canonical Event Catalog
+# Lists structured event contracts, semantics, and their expected downstream impacts.
+
+events:
+  - name: evt_volunteer_checked_in
+    description: 'Fires when a volunteer scans the station check-in QR code.'
+    owner: 'Volunteer Management'
+    trigger: 'Physical scan of QR code'
+    producer: 'Volunteer Mobile Client'
+    consumers: [Volunteer Service, Recommendation Engine, Context Engine]
+    before_state: 'Volunteer.status = Registered'
+    after_state: 'Volunteer.status = Checked-In'
+    affected_entities: [Volunteer, Shift]
+    affected_contexts: [Volunteer Management, AI Intelligence]
+    expected_ai_reaction: 'Mark volunteer as active; check location telemetry; check nearby incidents.'
+    expected_human_reaction: 'None.'
+    downstream_events: [evt_volunteer_status_updated]
+    simulation:
+      supported: true
+      synthetic_generation: true
+      replay: true
+
+  - name: evt_incident_reported
+    description: 'Fires when a volunteer submits a raw observation report.'
+    owner: 'Incident Management'
+    trigger: 'Volunteer clicks Submit Report'
+    producer: 'Volunteer Mobile Client'
+    consumers: [Incident Service, Context Engine, Operations Console]
+    before_state: 'Incident = null'
+    after_state: 'Incident.status = Detected'
+    affected_entities: [Incident, Observation]
+    affected_contexts: [Incident Management, World State]
+    expected_ai_reaction: 'Run auto-classification RAG search; predict severity and recommend SOP.'
+    expected_human_reaction: 'Supervisor validates and triages the incident on console.'
+    downstream_events: [evt_incident_detected, evt_incident_assessed]
+    simulation:
+      supported: true
+      synthetic_generation: true
+      replay: true
+
+  - name: evt_recommendation_generated
+    description: 'Fires when the AI Orchestrator compiles a recommendation context.'
+    owner: 'AI Intelligence'
+    trigger: 'Incident transition to Assessed state'
+    producer: 'AI Reasoning Orchestrator'
+    consumers: [Policy Engine, Supervisor Console]
+    before_state: 'Recommendation = null'
+    after_state: 'Recommendation.status = Draft'
+    affected_entities: [Recommendation, Incident, Context]
+    affected_contexts: [AI Intelligence, Policy & Trust]
+    expected_ai_reaction: 'Submit recommendation to Policy Engine for safety compliance check.'
+    expected_human_reaction: 'None.'
+    downstream_events: [evt_policy_validation_started]
+    simulation:
+      supported: true
+      synthetic_generation: false
+      replay: true
+
+  - name: evt_policy_passed
+    description: 'Fires when safety policy engine checks return success.'
+    owner: 'Admin & Governance'
+    trigger: 'Policy Engine rule evaluation completion'
+    producer: 'Policy Engine Service'
+    consumers: [AI Orchestrator, Trust Release Gate]
+    before_state: 'Recommendation.status = Validating'
+    after_state: 'Recommendation.status = Ready'
+    affected_entities: [Recommendation, Policy]
+    affected_contexts: [Admin & Governance, Policy & Trust]
+    expected_ai_reaction: 'Calibrate confidence; release suggestion if above trust threshold.'
+    expected_human_reaction: 'None.'
+    downstream_events: [evt_recommendation_released]
+    simulation:
+      supported: true
+      synthetic_generation: true
+      replay: true
+
+  - name: evt_recommendation_approved
+    description: 'Fires when a human operator approves the recommendation.'
+    owner: 'Policy & Trust'
+    trigger: 'Supervisor clicks Approve Recommendation'
+    producer: 'Supervisor Console App'
+    consumers: [Incident Service, Task Dispatcher]
+    before_state: 'Incident.status = RecommendationReady'
+    after_state: 'Incident.status = HumanApproved'
+    affected_entities: [Incident, Recommendation, Approval]
+    affected_contexts: [Policy & Trust, Incident Management]
+    expected_ai_reaction: 'Instantiate task objects and match nearest available volunteers.'
+    expected_human_reaction: 'Monitor dispatch logs on console.'
+    downstream_events: [evt_tasks_dispatched]
+    simulation:
+      supported: true
+      synthetic_generation: false
+      replay: true

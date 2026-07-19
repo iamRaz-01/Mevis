@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Pending : Update request locks entity
+    
+    Pending --> Applied : Merges successfully
+    Pending --> Rejected : Invariant fails
+    Pending --> Superseded : Newer timestamp overwrites
+    
+    Applied --> [*]
+    Rejected --> [*]
+    Superseded --> [*]

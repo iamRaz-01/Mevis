@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Unsynchronized : Ingestion
+    Unsynchronized --> Pending : Enqueue validation
+    Pending --> Synchronizing : Invariants checks pass
+    Synchronizing --> Current : State merge successful
+    
+    Current --> Stale : Validity age exceeded
+    Stale --> Expired : Expiration timeout triggered
+    
+    Expired --> [*]

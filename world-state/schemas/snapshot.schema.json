@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS State Snapshot Schema",
+  "type": "object",
+  "properties": {
+    "snapshot_id": { "type": "string" },
+    "snapshot_type": {
+      "type": "string",
+      "enum": ["Full", "Incremental", "Recovery", "Historical", "Simulation"]
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "global_version": { "type": "integer" },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string" }
+        },
+        "required": ["id", "status"]
+      }
+    }
+  },
+  "required": ["snapshot_id", "snapshot_type", "timestamp", "global_version", "entities"]
+}

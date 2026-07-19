@@ -1,0 +1,13 @@
+# MEVIS World State Delta Update Example
+# Represents a volunteer position change update.
+
+state_update:
+  transaction_id: 'tx_vol_move_402'
+  entity_id: 'vol_steward_104'
+  changes:
+    - field: 'location'
+      previous_value: 'zon_north_concourse'
+      new_value: 'gat_entry_12'
+    - field: 'confidence'
+      previous_value: 0.85
+      new_value: 0.95

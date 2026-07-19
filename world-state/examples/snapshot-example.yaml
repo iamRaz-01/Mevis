@@ -1,0 +1,21 @@
+# MEVIS World State Snapshot Example
+# Represents a full stadium snapshot state at version 128.
+
+state_snapshot:
+  snapshot_id: 'snap_full_128'
+  snapshot_type: 'Full'
+  timestamp: '2026-07-19T14:00:00Z'
+  global_version: 128
+  entities:
+    - id: 'vol_steward_104'
+      status: 'Available'
+      location: 'gat_entry_12'
+      confidence: 0.95
+      timestamp: '2026-07-19T13:59:55Z'
+      version: 12
+    - id: 'inc_medical_001'
+      status: 'Triaged'
+      location: 'gat_entry_12'
+      confidence: 0.90
+      timestamp: '2026-07-19T13:59:45Z'
+      version: 5

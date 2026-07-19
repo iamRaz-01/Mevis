@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS State Update Delta Schema",
+  "type": "object",
+  "properties": {
+    "transaction_id": { "type": "string" },
+    "entity_id": { "type": "string" },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": { "type": "string" },
+          "previous_value": {},
+          "new_value": {}
+        },
+        "required": ["field", "new_value"]
+      }
+    }
+  },
+  "required": ["transaction_id", "entity_id", "changes"]
+}

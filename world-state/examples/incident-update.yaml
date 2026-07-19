@@ -1,0 +1,13 @@
+# MEVIS World State Delta Update Example
+# Represents an incident triage status transition update.
+
+state_update:
+  transaction_id: 'tx_inc_triage_901'
+  entity_id: 'inc_medical_001'
+  changes:
+    - field: 'status'
+      previous_value: 'Reported'
+      new_value: 'Triaged'
+    - field: 'confidence'
+      previous_value: 0.70
+      new_value: 0.90

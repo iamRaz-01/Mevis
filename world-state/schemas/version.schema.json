@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS State Version Schema",
+  "type": "object",
+  "properties": {
+    "version_index": { "type": "integer", "minimum": 1 },
+    "parent_signature": { "type": "string" },
+    "delta_hash": { "type": "string" }
+  },
+  "required": ["version_index", "parent_signature", "delta_hash"]
+}

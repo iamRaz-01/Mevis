@@ -1,0 +1,22 @@
+# MEVIS World State Synchronization Example
+# Traces dual incoming location telemetries conflict resolution.
+
+sync_resolution:
+  version_index: 129
+  parent_signature: 'hash_parent_128'
+  delta_hash: 'hash_delta_129'
+  conflict:
+    type: 'DuplicateLocation'
+    entity_id: 'vol_steward_104'
+    incoming_updates:
+      - source: 'GPS_ping'
+        location: 'gat_entry_12'
+        timestamp: '2026-07-19T14:00:02Z'
+        confidence: 0.85
+      - source: 'CCTV_verify'
+        location: 'zon_north_concourse'
+        timestamp: '2026-07-19T14:00:03Z'
+        confidence: 0.95
+    resolved_outcome:
+      location: 'zon_north_concourse'
+      reason: 'CCTV_verify source overrides GPS_ping due to higher trust score (0.95 vs 0.85).'

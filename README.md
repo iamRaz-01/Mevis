@@ -57,6 +57,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock snapshot configurations
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Spatial, relationships, and overview Mermaid charts
+├── world-state/        # Canonical world state engine logic and state updates
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock delta and sync update snapshots
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Ingestion flow, sync lifecycles, and lineage Mermaid charts
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

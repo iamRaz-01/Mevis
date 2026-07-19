@@ -1,0 +1,13 @@
+flowchart TD
+    %% Update ingestion flow
+    obs[Raw Ingress Observation] --> val{Validate schema}
+    val -- "Fail" --> reject[REJECTED]
+    val -- "Pass" --> delta[Extract Change Delta]
+    
+    delta --> inv{Check Invariants}
+    inv -- "Violation" --> conflict[Resolve conflicts]
+    inv -- "Valid" --> merge[Compute State merge]
+    
+    conflict --> merge
+    merge --> version[Increment Version Index]
+    version --> snapshot[Broadcast delta state version]

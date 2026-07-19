@@ -1,0 +1,16 @@
+{
+  "name": "@mevis/platform-service-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Resilient HTTP service client with retry and circuit breaker capabilities",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/platform-communication": "*",
+    "@mevis/platform-service-registry": "*"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@mevis/gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MEVIS Central HTTP API Gateway and Service Registry",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/platform-communication": "*"
+  }
+}

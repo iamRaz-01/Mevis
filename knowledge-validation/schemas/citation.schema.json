@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Citation Entry Schema",
+  "type": "object",
+  "properties": {
+    "citation_id": { "type": "string" },
+    "target_chunk": { "type": "string" },
+    "section_ref": { "type": "string" },
+    "veracity_status": { "type": "string" }
+  },
+  "required": ["citation_id", "target_chunk", "section_ref", "veracity_status"]
+}

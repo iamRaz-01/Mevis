@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Provenance Traceability Schema",
+  "type": "object",
+  "properties": {
+    "provenance_id": { "type": "string" },
+    "parent_document": { "type": "string" },
+    "originator": { "type": "string" },
+    "revision_tag": { "type": "string" }
+  },
+  "required": ["provenance_id", "parent_document", "originator", "revision_tag"]
+}

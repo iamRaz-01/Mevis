@@ -1,0 +1,14 @@
+# MEVIS Validation Example
+# Represents a flagged contradictory evacuation guideline outcome.
+
+validation_outcome:
+  outcome_id: 'val_outcome_contradictory_88'
+  chunk_id: 'kn_emergency_playbook_02_chunk_01'
+  status: 'Rejected'
+  warnings:
+    - 'UnresolvedContradiction: playbooks emergency gate targets differ from active capacity constraints.'
+
+trust_profile:
+  trust_audit_id: 'tr_audit_contradictory_88'
+  authority_weight: 0.20
+  review_recency_score: 0.85

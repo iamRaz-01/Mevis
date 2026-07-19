@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Conceptual Trust Schema",
+  "type": "object",
+  "properties": {
+    "trust_audit_id": { "type": "string" },
+    "authority_weight": { "type": "number" },
+    "review_recency_score": { "type": "number" }
+  },
+  "required": ["trust_audit_id", "authority_weight", "review_recency_score"]
+}

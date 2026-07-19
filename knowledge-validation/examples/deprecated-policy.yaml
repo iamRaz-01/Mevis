@@ -1,0 +1,14 @@
+# MEVIS Validation Example
+# Represents a deprecated policy document outcome.
+
+validation_outcome:
+  outcome_id: 'val_outcome_policy_052'
+  chunk_id: 'kn_security_policy_04_chunk_01'
+  status: 'RequiresReview'
+  warnings:
+    - 'This policy version tag has been superseded by kn_security_policy_05.'
+
+trust_profile:
+  trust_audit_id: 'tr_audit_policy_052'
+  authority_weight: 0.50
+  review_recency_score: 0.10

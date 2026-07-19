@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Received : raw chunk retrieved
+    Received --> Auditing : verification active
+    Auditing --> Validated : trust score >= 0.80
+    Auditing --> RequiresReview : warnings raised
+    Auditing --> Rejected : structural failures
+    
+    Validated --> [*]
+    RequiresReview --> [*]
+    Rejected --> [*]

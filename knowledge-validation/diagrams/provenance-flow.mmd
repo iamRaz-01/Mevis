@@ -1,0 +1,4 @@
+flowchart TD
+    raw[Raw Ingest File] -->|Revision tags| chunk[Knowledge Chunk segment]
+    chunk -->|Cites page & section| cite[Citations index]
+    cite -->|Preserves ownership trace| trace[Audit Veracity Validation]

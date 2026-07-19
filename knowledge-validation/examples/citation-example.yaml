@@ -1,0 +1,8 @@
+# MEVIS Validation Example
+# Represents citation fields referencing a verified chunk.
+
+citation:
+  citation_id: 'cit_med_response_304'
+  target_chunk: 'kn_medical_sop_01_chunk_01'
+  section_ref: 'Cardiac_Emergency_Response_SOP.pdf Section 2.1: Defibrillator Deployment'
+  veracity_status: 'Validated'

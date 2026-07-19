@@ -1,0 +1,8 @@
+# MEVIS Validation Example
+# Represents provenance log entries trace.
+
+provenance:
+  provenance_id: 'prov_trace_med_101'
+  parent_document: 'Cardiac_Emergency_Response_SOP.pdf'
+  originator: 'Chief Medical Officer'
+  revision_tag: 'v1.2.0'

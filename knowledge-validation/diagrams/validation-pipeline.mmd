@@ -1,0 +1,7 @@
+flowchart TD
+    chunk[Retrieved Knowledge Object] --> src[Source Authority Check]
+    src --> prov[Provenance verification]
+    prov --> fresh[Freshness timeline check]
+    fresh --> comp[Completeness check]
+    comp --> clash[Contradiction check]
+    clash --> out[Validation outcome output]

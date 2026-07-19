@@ -1,0 +1,15 @@
+{
+  "name": "@mevis/platform-edge-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standardized edge gateway routing, schema validation, rate-limiting, CORS, and security policies",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/platform-communication": "*"
+  }
+}

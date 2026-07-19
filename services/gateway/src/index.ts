@@ -1,9 +1,11 @@
 import http from 'node:http';
+import { createEnvelope, extractContext } from '@mevis/platform-communication';
 import {
-  createEnvelope,
-  extractContext,
-  contextStorage,
-} from '@mevis/platform-communication';
+  EdgeMiddleware,
+  EdgeRouter,
+  RequestValidator,
+  type RequestSchema,
+} from '@mevis/platform-edge-runtime';
 
 const PORT = parseInt(process.env['PORT'] || '8000', 10);
 
@@ -16,6 +18,14 @@ interface ServiceInstance {
 
 // In-memory catalog
 const serviceCatalog = new Map<string, ServiceInstance[]>();
+
+// Example request schema validation policy for incoming telemetry posts
+const telemetrySchema: RequestSchema = {
+  body: {
+    deviceId: { type: 'string', required: true, min: 3 },
+    reading: { type: 'number', required: true, min: 0, max: 100 },
+  },
+};
 
 // Housekeeping: purge dead instances every 10 seconds
 setInterval(() => {
@@ -67,10 +77,10 @@ function readJson(req: http.IncomingMessage): Promise<unknown> {
 }
 
 const server = http.createServer(async (req, res) => {
-  const ctx = extractContext(req);
+  // Execute the entire request chain inside the Edge Middleware pipeline
+  await EdgeMiddleware.runPipeline(req, res, async () => {
+    const ctx = extractContext(req);
 
-  // Run routing inside context Storage so standard responses carry correct metadata
-  await contextStorage.run(ctx, async () => {
     const url = new URL(req.url ?? '/', `http://localhost:${PORT}`);
     const segments = url.pathname.split('/').filter(Boolean);
 
@@ -151,15 +161,11 @@ const server = http.createServer(async (req, res) => {
         );
       }
 
-      // 4. Reverse Proxy Endpoint routing
-      // Expected pattern: /api/gateway/services/:serviceName/*
-      if (
-        segments[0] === 'api' &&
-        segments[1] === 'gateway' &&
-        segments[2] === 'services' &&
-        segments[3]
-      ) {
-        const name = segments[3];
+      // 4. Centralized Edge Routing and Versioning Proxy
+      // Pattern matched: /api/:version/services/:serviceName/*
+      const route = EdgeRouter.resolve(url.pathname);
+      if (route) {
+        const name = route.serviceName;
         const instances = serviceCatalog.get(name);
         if (!instances || instances.length === 0) {
           return json(
@@ -175,7 +181,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         const instance = instances[Math.floor(Math.random() * instances.length)];
-        const targetPath = '/' + segments.slice(4).join('/') + url.search;
+        const targetPath = route.targetPath + url.search;
 
         const proxyHeaders: Record<string, string> = {};
         for (const [key, val] of Object.entries(req.headers)) {
@@ -190,7 +196,61 @@ const server = http.createServer(async (req, res) => {
 
         const targetUrl = new URL(targetPath, instance!.endpoint);
 
-        // Fetch forward request
+        // Perform schema validation check at the Edge boundary for telemetry route
+        if (req.method === 'POST' && targetPath.includes('/telemetry')) {
+          let bodyPayload: Record<string, unknown> = {};
+          const rawBody = await readBody(req);
+          try {
+            if (rawBody.length > 0) {
+              bodyPayload = JSON.parse(rawBody.toString('utf-8'));
+            }
+          } catch {
+            return json(
+              res,
+              400,
+              createEnvelope(
+                false,
+                undefined,
+                [{ code: 'INVALID_JSON', message: 'Malformed JSON payload.' }],
+                'gateway',
+              ),
+            );
+          }
+
+          // Convert url query entries to record
+          const queryParams: Record<string, string> = {};
+          url.searchParams.forEach((val, key) => {
+            queryParams[key] = val;
+          });
+
+          const validationErrors = RequestValidator.validate(
+            telemetrySchema,
+            bodyPayload,
+            queryParams,
+          );
+          if (validationErrors) {
+            return json(res, 400, createEnvelope(false, undefined, validationErrors, 'gateway'));
+          }
+
+          // Forward with validated body
+          const response = await fetch(targetUrl.toString(), {
+            method: req.method,
+            headers: proxyHeaders,
+            body: rawBody,
+          });
+
+          const respHeaders: Record<string, string> = {};
+          response.headers.forEach((val, key) => {
+            respHeaders[key] = val;
+          });
+
+          res.writeHead(response.status, respHeaders);
+          const arrayBuffer = await response.arrayBuffer();
+          res.end(Buffer.from(arrayBuffer));
+          return;
+        }
+
+        // Standard forward without custom validation schema
         const response = await fetch(targetUrl.toString(), {
           method: req.method,
           headers: proxyHeaders,
@@ -204,7 +264,8 @@ const server = http.createServer(async (req, res) => {
 
         res.writeHead(response.status, respHeaders);
         const arrayBuffer = await response.arrayBuffer();
-        return res.end(Buffer.from(arrayBuffer));
+        res.end(Buffer.from(arrayBuffer));
+        return;
       }
 
       // 5. Gateway Health check

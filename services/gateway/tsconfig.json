@@ -5,5 +5,8 @@
     "rootDir": "./"
   },
   "include": ["src/**/*"],
-  "references": [{ "path": "../../packages/platform/communication" }]
+  "references": [
+    { "path": "../../packages/platform/communication" },
+    { "path": "../../packages/platform/edge-runtime" }
+  ]
 }

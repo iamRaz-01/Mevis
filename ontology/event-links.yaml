@@ -1,0 +1,81 @@
+# MEVIS Event-State Links Matrix
+# Defines how technical domain events trigger state transitions in the domain model.
+
+event_links:
+  - event: evt_observation_received
+    source: Observation Ingestion
+    target_entity: Observation
+    trigger_transition: '* -> Received'
+    description: 'Fires when a raw signal or report is ingested into the system.'
+
+  - event: evt_incident_detected
+    source: Situation Triage
+    target_entity: Incident
+    trigger_transition: '* -> Detected'
+    description: 'Fires when an observation is assessed and classified as a valid incident.'
+
+  - event: evt_incident_assessed
+    source: Situation Triage
+    target_entity: Incident
+    trigger_transition: 'Detected -> Assessed'
+    description: "Fires when the incident's severity and classification metadata are verified."
+
+  - event: evt_context_assembled
+    source: Context Engine
+    target_entity: Context
+    trigger_transition: 'Assembling -> Assembled'
+    description: 'Fires when the canonical context object is prepared for reasoning.'
+
+  - event: evt_recommendation_generated
+    source: AI Orchestrator
+    target_entity: Recommendation
+    trigger_transition: 'Draft -> Validating'
+    description: 'Fires when the AI engine finishes drafting candidate action plans.'
+
+  - event: evt_policy_passed
+    source: Policy Engine
+    target_entity: Recommendation
+    trigger_transition: 'Validating -> Ready'
+    description: 'Fires when safety and operational constraints validation succeeds.'
+
+  - event: evt_recommendation_released
+    source: Trust Release Gate
+    target_entity: Recommendation
+    trigger_transition: 'Ready -> Released'
+    description: 'Fires when the trust gate releases the recommendation to operators.'
+
+  - event: evt_tasks_dispatched
+    source: Task Dispatcher
+    target_entity: Task
+    trigger_transition: '* -> Assigned'
+    description: 'Fires when tasks are mapped and dispatched to active volunteers.'
+
+  - event: evt_task_acknowledged
+    source: Volunteer Client
+    target_entity: Task
+    trigger_transition: 'Assigned -> Acknowledged'
+    description: 'Fires when a volunteer opens and acknowledges a task.'
+
+  - event: evt_task_started
+    source: Volunteer Client
+    target_entity: Task
+    trigger_transition: 'Acknowledged -> InProgress'
+    description: 'Fires when a volunteer begins execution of the task.'
+
+  - event: evt_task_completed
+    source: Volunteer Client
+    target_entity: Task
+    trigger_transition: 'InProgress -> Completed'
+    description: 'Fires when a volunteer flags the task as successfully completed.'
+
+  - event: evt_incident_resolved
+    source: Incident Manager
+    target_entity: Incident
+    trigger_transition: 'Actioned -> Resolved'
+    description: 'Fires when all associated tasks have been completed.'
+
+  - event: evt_learning_logged
+    source: Learning Engine
+    target_entity: Incident
+    trigger_transition: 'Resolved -> Learned'
+    description: 'Fires when the incident details and feedback are committed to memory.'

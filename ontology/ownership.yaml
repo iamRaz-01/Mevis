@@ -1,0 +1,53 @@
+# MEVIS Bounded Context Ownership Matrix
+# Maps domain entities to system ownership context areas.
+
+contexts:
+  Volunteer Management:
+    description: 'Manages volunteers profiles, active shifts, presence tracking, and supervisor mapping.'
+    entities:
+      - Volunteer
+      - Supervisor
+      - Shift
+
+  Operations Command:
+    description: 'Triages incidents, processes escalations, monitors crowd density, and coordinates coordinator stations.'
+    entities:
+      - Coordinator
+      - Zone
+      - Gate
+      - Venue
+
+  Incident Management:
+    description: 'Maintains incident lifecycles, dispatches task queues, tracks completions.'
+    entities:
+      - Incident
+      - Task
+      - Observation
+
+  AI Intelligence:
+    description: 'Orchestrates reasoning loops, context construction, and compiles recommendations.'
+    entities:
+      - Recommendation
+      - Context
+
+  Knowledge Management:
+    description: 'Indexes SOP rules, parses evidence slices, compiles RAG grounding citations.'
+    entities:
+      - SOP
+      - Evidence
+
+  Admin & Governance:
+    description: 'Defines safety rule configurations and validates policy constraints.'
+    entities:
+      - Policy
+
+  Policy & Trust:
+    description: 'Checks release authorizations, collects human approval signals, and checks trust release thresholds.'
+    entities:
+      - Approval
+
+  Analytics & Learning:
+    description: 'Updates decision histories, logs performance evaluation parameters, and updates outcomes for memory feeds.'
+    entities:
+      - Decision
+      - Event

@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Recommendation",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^rec_[a-zA-Z0-9_-]+$"
+    },
+    "incident_id": {
+      "type": "string"
+    },
+    "proposed_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    }
+  },
+  "required": [
+    "id",
+    "incident_id",
+    "proposed_actions",
+    "supporting_evidence_ids",
+    "confidence_score"
+  ],
+  "additionalProperties": false
+}

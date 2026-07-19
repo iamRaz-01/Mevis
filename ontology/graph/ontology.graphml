@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns
+     http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="label" for="node" attr.name="label" attr.type="string"/>
+  <key id="prefix" for="node" attr.name="prefix" attr.type="string"/>
+  <key id="relation" for="edge" attr.name="relation" attr.type="string"/>
+  <graph id="MEVIS_Ontology" edgedefault="directed">
+    <!-- Nodes -->
+    <node id="Volunteer">
+      <data key="label">Volunteer</data>
+      <data key="prefix">vol_</data>
+    </node>
+    <node id="Supervisor">
+      <data key="label">Supervisor</data>
+      <data key="prefix">sup_</data>
+    </node>
+    <node id="Coordinator">
+      <data key="label">Coordinator</data>
+      <data key="prefix">coo_</data>
+    </node>
+    <node id="Venue">
+      <data key="label">Venue</data>
+      <data key="prefix">ven_</data>
+    </node>
+    <node id="Zone">
+      <data key="label">Zone</data>
+      <data key="prefix">zon_</data>
+    </node>
+    <node id="Gate">
+      <data key="label">Gate</data>
+      <data key="prefix">gat_</data>
+    </node>
+    <node id="Incident">
+      <data key="label">Incident</data>
+      <data key="prefix">inc_</data>
+    </node>
+    <node id="Shift">
+      <data key="label">Shift</data>
+      <data key="prefix">shf_</data>
+    </node>
+    <node id="Task">
+      <data key="label">Task</data>
+      <data key="prefix">tsk_</data>
+    </node>
+    <node id="Recommendation">
+      <data key="label">Recommendation</data>
+      <data key="prefix">rec_</data>
+    </node>
+    <node id="SOP">
+      <data key="label">SOP</data>
+      <data key="prefix">sop_</data>
+    </node>
+    <node id="Policy">
+      <data key="label">Policy</data>
+      <data key="prefix">pol_</data>
+    </node>
+    <node id="Evidence">
+      <data key="label">Evidence</data>
+      <data key="prefix">evd_</data>
+    </node>
+    <node id="Observation">
+      <data key="label">Observation</data>
+      <data key="prefix">obs_</data>
+    </node>
+    <node id="Decision">
+      <data key="label">Decision</data>
+      <data key="prefix">dec_</data>
+    </node>
+    <node id="Context">
+      <data key="label">Context</data>
+      <data key="prefix">ctx_</data>
+    </node>
+    <node id="Event">
+      <data key="label">Event</data>
+      <data key="prefix">evt_</data>
+    </node>
+    <node id="Approval">
+      <data key="label">Approval</data>
+      <data key="prefix">app_</data>
+    </node>
+
+    <!-- Edges -->
+    <edge id="e1" source="Volunteer" target="Shift">
+      <data key="relation">ASSIGNED_TO</data>
+    </edge>
+    <edge id="e2" source="Volunteer" target="Supervisor">
+      <data key="relation">REPORTS_TO</data>
+    </edge>
+    <edge id="e3" source="Volunteer" target="Gate">
+      <data key="relation">POSITIONED_AT</data>
+    </edge>
+    <edge id="e4" source="Supervisor" target="Zone">
+      <data key="relation">MANAGES</data>
+    </edge>
+    <edge id="e5" source="Gate" target="Zone">
+      <data key="relation">LOCATED_IN</data>
+    </edge>
+    <edge id="e6" source="Zone" target="Venue">
+      <data key="relation">BELONGS_TO</data>
+    </edge>
+    <edge id="e7" source="Incident" target="Gate">
+      <data key="relation">OCCURS_AT</data>
+    </edge>
+    <edge id="e8" source="Incident" target="Zone">
+      <data key="relation">IMPACTS</data>
+    </edge>
+    <edge id="e9" source="Incident" target="SOP">
+      <data key="relation">GOVERNED_BY</data>
+    </edge>
+    <edge id="e10" source="Incident" target="Task">
+      <data key="relation">RESOLVED_BY</data>
+    </edge>
+    <edge id="e11" source="Task" target="Volunteer">
+      <data key="relation">EXECUTED_BY</data>
+    </edge>
+    <edge id="e12" source="Observation" target="Incident">
+      <data key="relation">TRIGGERS</data>
+    </edge>
+    <edge id="e13" source="Recommendation" target="Incident">
+      <data key="relation">PROPOSED_FOR</data>
+    </edge>
+    <edge id="e14" source="Recommendation" target="Evidence">
+      <data key="relation">REFERENCES</data>
+    </edge>
+    <edge id="e15" source="Recommendation" target="Policy">
+      <data key="relation">VALIDATED_BY</data>
+    </edge>
+    <edge id="e16" source="Approval" target="Recommendation">
+      <data key="relation">AUTHORIZES</data>
+    </edge>
+    <edge id="e17" source="Decision" target="Recommendation">
+      <data key="relation">COMMITS</data>
+    </edge>
+  </graph>
+</graphml>

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Observation",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^obs_[a-zA-Z0-9_-]+$"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["VOLUNTEER", "SENSOR"]
+    },
+    "raw_content": {
+      "type": "string"
+    }
+  },
+  "required": ["id", "source", "raw_content"],
+  "additionalProperties": false
+}

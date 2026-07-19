@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Shift",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^shf_[a-zA-Z0-9_-]+$"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "start_time", "end_time"],
+  "additionalProperties": false
+}

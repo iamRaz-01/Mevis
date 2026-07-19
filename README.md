@@ -31,6 +31,10 @@ The repository is structured as follows:
 │   ├── adr/            # Architecture Decision Records registry
 │   ├── standards/      # Coding, repository, and naming standards
 │   └── development/    # Git, branching, and PR workflows
+├── ontology/           # Canonical domain ontology, schemas, and graph configurations
+│   ├── ontology.md     # Semantic domain ontology catalog
+│   ├── schemas/        # JSON schemas for all major entities
+│   └── graph/          # Knowledge Graph visualization diagrams (mmd, graphml)
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

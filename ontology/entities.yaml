@@ -1,0 +1,238 @@
+# MEVIS Entity Configuration Specs
+# Defines attributes, validation rules, and valid lifecycles for domain entities.
+
+entities:
+  Volunteer:
+    prefix: vol_
+    attributes:
+      id: { type: string, required: true, pattern: '^vol_[a-zA-Z0-9_-]+$' }
+      first_name: { type: string, required: true }
+      last_name: { type: string, required: true }
+      role_scope: { type: string, required: true, default: 'VOLUNTEER' }
+      assigned_gate_id: { type: string, required: false }
+      language_preferences: { type: array, required: true, item_type: string }
+    lifecycle:
+      initial: Registered
+      states: [Registered, Active, CheckedOut, Suspended]
+      transitions:
+        - { from: Registered, to: Active }
+        - { from: Active, to: CheckedOut }
+        - { from: Active, to: Suspended }
+        - { from: CheckedOut, to: Active }
+
+  Supervisor:
+    prefix: sup_
+    attributes:
+      id: { type: string, required: true, pattern: '^sup_[a-zA-Z0-9_-]+$' }
+      first_name: { type: string, required: true }
+      last_name: { type: string, required: true }
+      assigned_zone_id: { type: string, required: true }
+    lifecycle:
+      initial: Active
+      states: [Active, CheckedOut, Suspended]
+
+  Coordinator:
+    prefix: coo_
+    attributes:
+      id: { type: string, required: true, pattern: '^coo_[a-zA-Z0-9_-]+$' }
+      station_id: { type: string, required: true }
+    lifecycle:
+      initial: Active
+      states: [Active, Offline]
+
+  Venue:
+    prefix: ven_
+    attributes:
+      id: { type: string, required: true, pattern: '^ven_[a-zA-Z0-9_-]+$' }
+      name: { type: string, required: true }
+      location: { type: string, required: true }
+    lifecycle:
+      initial: Offline
+      states: [Offline, PreEvent, LiveEvent, PostEvent]
+
+  Zone:
+    prefix: zon_
+    attributes:
+      id: { type: string, required: true, pattern: '^zon_[a-zA-Z0-9_-]+$' }
+      venue_id: { type: string, required: true }
+      name: { type: string, required: true }
+    lifecycle:
+      initial: Static
+
+  Gate:
+    prefix: gat_
+    attributes:
+      id: { type: string, required: true, pattern: '^gat_[a-zA-Z0-9_-]+$' }
+      zone_id: { type: string, required: true }
+      status: { type: string, required: true, enum: [Open, Restrictive, Closed] }
+    lifecycle:
+      initial: Open
+      states: [Open, Restrictive, Closed]
+
+  Incident:
+    prefix: inc_
+    attributes:
+      id: { type: string, required: true, pattern: '^inc_[0-9]{4}_[0-9]+$' }
+      venue_id: { type: string, required: true }
+      zone_id: { type: string, required: true }
+      gate_id: { type: string, required: false }
+      classification:
+        {
+          type: string,
+          required: true,
+          enum:
+            [
+              LOST_CHILD,
+              MEDICAL_EMERGENCY,
+              CROWD_SURGE,
+              GATE_CLOSURE,
+              SEVERE_WEATHER,
+              TRANSPORT_DISRUPTION,
+              SECURITY_BREACH,
+              ACCESSIBILITY_BOTTLENECK,
+            ],
+        }
+      severity: { type: string, required: true, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+      status: { type: string, required: true }
+    lifecycle:
+      initial: Detected
+      states:
+        [
+          Detected,
+          Assessed,
+          RecommendationReady,
+          HumanApproved,
+          HumanRejected,
+          Actioned,
+          Resolved,
+          Learned,
+        ]
+      transitions:
+        - { from: Detected, to: Assessed }
+        - { from: Assessed, to: RecommendationReady }
+        - { from: RecommendationReady, to: HumanApproved }
+        - { from: RecommendationReady, to: HumanRejected }
+        - { from: HumanApproved, to: Actioned }
+        - { from: HumanRejected, to: Assessed }
+        - { from: Actioned, to: Resolved }
+        - { from: Resolved, to: Learned }
+
+  Shift:
+    prefix: shf_
+    attributes:
+      id: { type: string, required: true, pattern: '^shf_[a-zA-Z0-9_-]+$' }
+      start_time: { type: string, required: true, format: date-time }
+      end_time: { type: string, required: true, format: date-time }
+    lifecycle:
+      initial: Scheduled
+      states: [Scheduled, CheckedIn, Active, CheckedOut, Absent]
+
+  Task:
+    prefix: tsk_
+    attributes:
+      id: { type: string, required: true, pattern: '^tsk_[a-zA-Z0-9_-]+$' }
+      incident_id: { type: string, required: true }
+      assigned_volunteer_id: { type: string, required: true }
+      description: { type: string, required: true }
+      status: { type: string, required: true }
+    lifecycle:
+      initial: Assigned
+      states: [Assigned, Acknowledged, InProgress, Completed, Failed]
+      transitions:
+        - { from: Assigned, to: Acknowledged }
+        - { from: Acknowledged, to: InProgress }
+        - { from: InProgress, to: Completed }
+        - { from: InProgress, to: Failed }
+
+  Recommendation:
+    prefix: rec_
+    attributes:
+      id: { type: string, required: true, pattern: '^rec_[a-zA-Z0-9_-]+$' }
+      incident_id: { type: string, required: true }
+      proposed_actions: { type: array, required: true, item_type: string }
+      supporting_evidence_ids: { type: array, required: true, item_type: string }
+      confidence_score: { type: number, required: true, minimum: 0.0, maximum: 1.0 }
+    lifecycle:
+      initial: Draft
+      states: [Draft, Validating, Ready, Released, Accepted, Rejected]
+
+  SOP:
+    prefix: sop_
+    attributes:
+      id: { type: string, required: true, pattern: '^sop_[a-zA-Z0-9_-]+$' }
+      title: { type: string, required: true }
+      version: { type: string, required: true }
+    lifecycle:
+      initial: Draft
+      states: [Draft, Approved, Active, Archived]
+
+  Policy:
+    prefix: pol_
+    attributes:
+      id: { type: string, required: true, pattern: '^pol_[a-zA-Z0-9_-]+$' }
+      name: { type: string, required: true }
+      type: { type: string, required: true, enum: [SAFETY, AUDIT, COMPLIANCE] }
+    lifecycle:
+      initial: Active
+      states: [Active, Inactive]
+
+  Evidence:
+    prefix: evd_
+    attributes:
+      id: { type: string, required: true, pattern: '^evd_[a-zA-Z0-9_-]+$' }
+      source_type: { type: string, required: true, enum: [SOP, RELATIONAL_FACT] }
+      content: { type: string, required: true }
+    lifecycle:
+      initial: Ingested
+      states: [Ingested, Active, Deprecated]
+
+  Observation:
+    prefix: obs_
+    attributes:
+      id: { type: string, required: true, pattern: '^obs_[a-zA-Z0-9_-]+$' }
+      source: { type: string, required: true, enum: [VOLUNTEER, SENSOR] }
+      raw_content: { type: string, required: true }
+    lifecycle:
+      initial: Received
+      states: [Received, Assessed, Merged, Discarded]
+
+  Decision:
+    prefix: dec_
+    attributes:
+      id: { type: string, required: true, pattern: '^dec_[a-zA-Z0-9_-]+$' }
+      operator_id: { type: string, required: true }
+      recommendation_id: { type: string, required: true }
+      action_taken: { type: string, required: true }
+    lifecycle:
+      initial: Pending
+      states: [Pending, Committed, Recorded]
+
+  Context:
+    prefix: ctx_
+    attributes:
+      id: { type: string, required: true, pattern: '^ctx_[a-zA-Z0-9_-]+$' }
+      timestamp: { type: string, required: true, format: date-time }
+      incident_id: { type: string, required: true }
+    lifecycle:
+      initial: Assembling
+      states: [Assembling, Assembled, Stale]
+
+  Event:
+    prefix: evt_
+    attributes:
+      id: { type: string, required: true, pattern: '^evt_[a-zA-Z0-9_-]+$' }
+      type: { type: string, required: true }
+      payload: { type: object, required: true }
+    lifecycle:
+      initial: Published
+      states: [Published, Dispatched, Processed]
+
+  Approval:
+    prefix: app_
+    attributes:
+      id: { type: string, required: true, pattern: '^app_[a-zA-Z0-9_-]+$' }
+      supervisor_id: { type: string, required: true }
+      recommendation_id: { type: string, required: true }
+    lifecycle:
+      initial: Requested
+      states: [Requested, Granted, Denied, Logged]

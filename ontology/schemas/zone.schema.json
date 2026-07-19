@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Zone",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^zon_[a-zA-Z0-9_-]+$"
+    },
+    "venue_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "required": ["id", "venue_id", "name"],
+  "additionalProperties": false
+}

@@ -1,0 +1,35 @@
+flowchart TD
+  %% Spatial containment
+  ven[Venue] -- contains --> zon[Zone]
+  zon -- contains --> gat[Gate]
+  
+  %% Volunteer positioning & reports
+  vol[Volunteer] -- positioned_at --> gat
+  vol -- assigned_to --> shf[Shift]
+  vol -- reports_to --> sup[Supervisor]
+  
+  %% Supervisor boundaries
+  sup -- manages --> zon
+  
+  %% Incident lifecycle
+  obs[Observation] -- triggers --> inc[Incident]
+  vol -- reports --> obs
+  inc -- occurs_at --> gat
+  inc -- impacts --> zon
+  inc -- governed_by --> sop[SOP]
+  inc -- resolved_by --> tsk[Task]
+  tsk -- executed_by --> vol
+  
+  %% AI recommendation
+  ctx[Context] -- builds_input_for --> rec[Recommendation]
+  inc -- provides_state_for --> ctx
+  rec -- proposed_for --> inc
+  rec -- references --> evd[Evidence]
+  sop -- contains --> evd
+  
+  %% Policy and Release Gate
+  rec -- validated_by --> pol[Policy]
+  app[Approval] -- authorizes --> rec
+  sup -- grants --> app
+  dec[Decision] -- commits --> rec
+  dec -- recorded_in --> evt[Event]

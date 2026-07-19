@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Supervisor",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^sup_[a-zA-Z0-9_-]+$"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "assigned_zone_id": {
+      "type": "string"
+    }
+  },
+  "required": ["id", "first_name", "last_name", "assigned_zone_id"],
+  "additionalProperties": false
+}

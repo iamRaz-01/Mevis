@@ -1,0 +1,122 @@
+# MEVIS Semantic Relationship Schema
+# Defines the graph edges connecting nodes in the operational Knowledge Graph.
+
+relationships:
+  - source: Volunteer
+    relation: ASSIGNED_TO
+    target: Shift
+    cardinality: 'N:1'
+    meaning: 'The volunteer is scheduled for a specific shift block.'
+    dependency: 'Shift lifecycle dependent'
+
+  - source: Volunteer
+    relation: REPORTS_TO
+    target: Supervisor
+    cardinality: 'N:1'
+    meaning: 'The volunteer is managed by the supervisor overseeing their gate or zone.'
+    dependency: 'Active during shift'
+
+  - source: Volunteer
+    relation: POSITIONED_AT
+    target: Gate
+    cardinality: 'N:1'
+    meaning: 'The volunteer is actively stationed at the entry portal.'
+    dependency: 'Cleared on CheckOut'
+
+  - source: Supervisor
+    relation: MANAGES
+    target: Zone
+    cardinality: '1:1'
+    meaning: 'The supervisor oversees physical tasks and safety triages inside the zone.'
+    dependency: 'Shift dependent'
+
+  - source: Gate
+    relation: LOCATED_IN
+    target: Zone
+    cardinality: 'N:1'
+    meaning: 'Spatial containment rule mapping gate to parent zone.'
+    dependency: 'Static mapping'
+
+  - source: Zone
+    relation: BELONGS_TO
+    target: Venue
+    cardinality: 'N:1'
+    meaning: 'Spatial containment mapping zone to parent stadium venue.'
+    dependency: 'Static mapping'
+
+  - source: Incident
+    relation: OCCURS_AT
+    target: Gate
+    cardinality: 'N:0..1'
+    meaning: 'Optionally binds an incident to a specific ingress point.'
+    dependency: 'Incident resolution dependent'
+
+  - source: Incident
+    relation: IMPACTS
+    target: Zone
+    cardinality: 'N:1'
+    meaning: 'Establishes spatial footprint of incident for alert propagation.'
+    dependency: 'Incident resolution dependent'
+
+  - source: Incident
+    relation: GOVERNED_BY
+    target: SOP
+    cardinality: 'N:1'
+    meaning: 'Standard instructions mapped to resolve the incident type.'
+    dependency: 'Static mapping'
+
+  - source: Incident
+    relation: RESOLVED_BY
+    target: Task
+    cardinality: '1:N'
+    meaning: 'Tasks executed by volunteers to clear the incident.'
+    dependency: 'Task completion dependent'
+
+  - source: Task
+    relation: EXECUTED_BY
+    target: Volunteer
+    cardinality: 'N:1'
+    meaning: 'The volunteer assigned to execute the specific task.'
+    dependency: 'Task completion dependent'
+
+  - source: Observation
+    relation: TRIGGERS
+    target: Incident
+    cardinality: 'N:1'
+    meaning: 'Ingested observation is triaged and becomes an incident.'
+    dependency: 'Observation assessment dependent'
+
+  - source: Recommendation
+    relation: PROPOSED_FOR
+    target: Incident
+    cardinality: 'N:1'
+    meaning: 'AI recommendation released to resolve the incident.'
+    dependency: 'Incident resolution dependent'
+
+  - source: Recommendation
+    relation: REFERENCES
+    target: Evidence
+    cardinality: 'N:N'
+    meaning: 'RAG grounding facts supporting the AI recommendation.'
+    dependency: 'Static grounding mapping'
+
+  - source: Recommendation
+    relation: VALIDATED_BY
+    target: Policy
+    cardinality: 'N:N'
+    meaning: 'Hard rules checked to assess safety and release permissions.'
+    dependency: 'Release validation'
+
+  - source: Approval
+    relation: AUTHORIZES
+    target: Recommendation
+    cardinality: 'N:1'
+    meaning: 'Verification approval signed by a supervisor.'
+    dependency: 'Required for release'
+
+  - source: Decision
+    relation: COMMITS
+    target: Recommendation
+    cardinality: '1:1'
+    meaning: 'Human action choice resolving or overriding the AI recommendation.'
+    dependency: 'Immutable auditing record'

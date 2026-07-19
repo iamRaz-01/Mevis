@@ -1,0 +1,39 @@
+# MEVIS Decision-State Links Matrix
+# Defines how human operator decisions drive state transitions in the domain model.
+
+decision_links:
+  - decision: dec_recommendation_approved
+    operator_role: Supervisor
+    target_entity: Incident
+    trigger_transition: 'RecommendationReady -> HumanApproved'
+    description: "Supervisor approves the AI's proposed action plans for execution."
+
+  - decision: dec_recommendation_rejected
+    operator_role: Supervisor
+    target_entity: Incident
+    trigger_transition: 'RecommendationReady -> HumanRejected'
+    description: 'Supervisor rejects the AI recommendation, triggering context re-assembly.'
+
+  - decision: dec_action_override
+    operator_role: Coordinator
+    target_entity: Recommendation
+    trigger_transition: 'Released -> Rejected'
+    description: 'Coordinator overrides a released action with an alternative solution.'
+
+  - decision: dec_evacuation_approved
+    operator_role: Coordinator
+    target_entity: Approval
+    trigger_transition: 'Requested -> Granted'
+    description: 'Coordinator grants emergency approval for evacuation tasks.'
+
+  - decision: dec_shift_checkin
+    operator_role: Volunteer
+    target_entity: Shift
+    trigger_transition: 'Scheduled -> CheckedIn'
+    description: 'Volunteer checks in at their assigned station starting their shift.'
+
+  - decision: dec_shift_checkout
+    operator_role: Volunteer
+    target_entity: Shift
+    trigger_transition: 'Active -> CheckedOut'
+    description: 'Volunteer signs out of their station at the end of shift.'

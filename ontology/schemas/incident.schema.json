@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Incident",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^inc_[0-9]{4}_[0-9]+$"
+    },
+    "venue_id": {
+      "type": "string"
+    },
+    "zone_id": {
+      "type": "string"
+    },
+    "gate_id": {
+      "type": ["string", "null"]
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "LOST_CHILD",
+        "MEDICAL_EMERGENCY",
+        "CROWD_SURGE",
+        "GATE_CLOSURE",
+        "SEVERE_WEATHER",
+        "TRANSPORT_DISRUPTION",
+        "SECURITY_BREACH",
+        "ACCESSIBILITY_BOTTLENECK"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Detected",
+        "Assessed",
+        "RecommendationReady",
+        "HumanApproved",
+        "HumanRejected",
+        "Actioned",
+        "Resolved",
+        "Learned"
+      ]
+    }
+  },
+  "required": ["id", "venue_id", "zone_id", "classification", "severity", "status"],
+  "additionalProperties": false
+}

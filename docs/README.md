@@ -33,6 +33,7 @@ The MEVIS documentation is organized into logical functional folders to make it 
 ### 📖 Domain Language
 
 - **[Domain Glossary & Ubiquitous Language](./domain/glossary.md)**: Defines the canonical vocabulary, operational terminology standard, domain rules, and naming standards.
+- **[Domain Ontology & Knowledge Graph](../ontology/ontology.md)**: Details the formal entity schemas, relationship models, invariants, and graph visualization diagrams.
 
 ### 📐 Engineering & Architecture
 

@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    { "id": "Volunteer", "label": "Volunteer", "prefix": "vol_" },
+    { "id": "Supervisor", "label": "Supervisor", "prefix": "sup_" },
+    { "id": "Coordinator", "label": "Coordinator", "prefix": "coo_" },
+    { "id": "Venue", "label": "Venue", "prefix": "ven_" },
+    { "id": "Zone", "label": "Zone", "prefix": "zon_" },
+    { "id": "Gate", "label": "Gate", "prefix": "gat_" },
+    { "id": "Incident", "label": "Incident", "prefix": "inc_" },
+    { "id": "Shift", "label": "Shift", "prefix": "shf_" },
+    { "id": "Task", "label": "Task", "prefix": "tsk_" },
+    { "id": "Recommendation", "label": "Recommendation", "prefix": "rec_" },
+    { "id": "SOP", "label": "SOP", "prefix": "sop_" },
+    { "id": "Policy", "label": "Policy", "prefix": "pol_" },
+    { "id": "Evidence", "label": "Evidence", "prefix": "evd_" },
+    { "id": "Observation", "label": "Observation", "prefix": "obs_" },
+    { "id": "Decision", "label": "Decision", "prefix": "dec_" },
+    { "id": "Context", "label": "Context", "prefix": "ctx_" },
+    { "id": "Event", "label": "Event", "prefix": "evt_" },
+    { "id": "Approval", "label": "Approval", "prefix": "app_" }
+  ],
+  "edges": [
+    { "source": "Volunteer", "relation": "ASSIGNED_TO", "target": "Shift" },
+    { "source": "Volunteer", "relation": "REPORTS_TO", "target": "Supervisor" },
+    { "source": "Volunteer", "relation": "POSITIONED_AT", "target": "Gate" },
+    { "source": "Supervisor", "relation": "MANAGES", "target": "Zone" },
+    { "source": "Gate", "relation": "LOCATED_IN", "target": "Zone" },
+    { "source": "Zone", "relation": "BELONGS_TO", "target": "Venue" },
+    { "source": "Incident", "relation": "OCCURS_AT", "target": "Gate" },
+    { "source": "Incident", "relation": "IMPACTS", "target": "Zone" },
+    { "source": "Incident", "relation": "GOVERNED_BY", "target": "SOP" },
+    { "source": "Incident", "relation": "RESOLVED_BY", "target": "Task" },
+    { "source": "Task", "relation": "EXECUTED_BY", "target": "Volunteer" },
+    { "source": "Observation", "relation": "TRIGGERS", "target": "Incident" },
+    { "source": "Recommendation", "relation": "PROPOSED_FOR", "target": "Incident" },
+    { "source": "Recommendation", "relation": "REFERENCES", "target": "Evidence" },
+    { "source": "Recommendation", "relation": "VALIDATED_BY", "target": "Policy" },
+    { "source": "Approval", "relation": "AUTHORIZES", "target": "Recommendation" },
+    { "source": "Decision", "relation": "COMMITS", "target": "Recommendation" }
+  ]
+}

@@ -1,0 +1,45 @@
+# MEVIS Domain Invariant Configurations
+# Defines absolute domain constraints that must be verified by validation gates.
+
+invariants:
+  - id: REQ-DOM-INV-001
+    name: SpatialContainment
+    description: 'Every Gate belongs to exactly one Zone, which belongs to exactly one Venue.'
+    severity: CRITICAL
+    validation: 'gate.zone_id.is_valid && zone.venue_id.is_valid'
+
+  - id: REQ-DOM-INV-002
+    name: EvacuationAuthLimit
+    description: 'A Volunteer cannot authorize evacuations. Only Supervisors and Coordinators have authorization.'
+    severity: CRITICAL
+    validation: "if (task.type == 'EVACUATION') { user.role == 'SUPERVISOR' || user.role == 'COORDINATOR' }"
+
+  - id: REQ-DOM-INV-003
+    name: HumanInTheLoopRelease
+    description: 'Safety-critical recommendations (High/Critical severity) require human supervisor approval prior to task dispatch.'
+    severity: CRITICAL
+    validation: "if (incident.severity in ['HIGH', 'CRITICAL']) { recommendation.status == 'Released' implies recommendation.approval_id != null }"
+
+  - id: REQ-DOM-INV-004
+    name: AIGroundingReference
+    description: 'A Recommendation must contain at least one reference link pointing to supporting Evidence.'
+    severity: HIGH
+    validation: 'recommendation.supporting_evidence_ids.length >= 1'
+
+  - id: REQ-DOM-INV-005
+    name: ContextFreshness
+    description: 'A Context object used in reasoning must have timestamp difference with active world-state less than 30 seconds.'
+    severity: HIGH
+    validation: 'now() - context.timestamp <= 30'
+
+  - id: REQ-DOM-INV-006
+    name: VolunteerGateLimit
+    description: 'A Volunteer cannot be active at more than one Gate simultaneously.'
+    severity: MEDIUM
+    validation: 'volunteer.active_gate_assignments.length <= 1'
+
+  - id: REQ-DOM-INV-007
+    name: ActiveShiftSchedule
+    description: 'A Volunteer must belong to an active Shift to execute tasks or submit observations.'
+    severity: HIGH
+    validation: "volunteer.status == 'Active' implies volunteer.current_shift_id != null"

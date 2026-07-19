@@ -4,6 +4,5 @@
     "outDir": "./dist",
     "rootDir": "./"
   },
-  "include": ["src/**/*", "tests/**/*"],
-  "references": [{ "path": "../shared-types" }]
+  "include": ["src/**/*"]
 }

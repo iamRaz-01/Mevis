@@ -1,4 +1,4 @@
-name: MEVIS CI Pipeline
+name: MEVIS Monorepo CI Pipeline
 
 on:
   push:
@@ -6,38 +6,41 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
-
 jobs:
-  validate:
-    name: Code Quality and Build Checks
+  verify:
+    name: Build & Verify Monorepo Workspace
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js Environment
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-level: '22'
           cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Check Code Formatting
-        run: npm run format:check
-
-      - name: Run Eslint Checks
+      - name: Lint Workspace
         run: npm run lint
 
-      - name: Verify Type Safety
+      - name: Check Formatting
+        run: npm run format:check
+
+      - name: TypeScript Type Check
         run: npm run typecheck
 
-      - name: Execute Unit Test Suites
+      - name: Run Unit Tests
         run: npm run test
 
-      - name: Verify Build Bundles
+      - name: Build Workspace
         run: npm run build
+
+      - name: Verify Monorepo Configuration
+        run: python scripts/verify-monorepo.py
+
+      - name: Verify Import Boundaries
+        run: python scripts/verify-boundaries.py

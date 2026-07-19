@@ -1,17 +1,12 @@
 {
-  "compilerOptions": {
-    "target": "es2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["es2022"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true
-  },
-  "exclude": ["node_modules", "**/dist", "**/build", "**/coverage"]
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "packages/shared-types" },
+    { "path": "packages/config" },
+    { "path": "packages/logger" },
+    { "path": "packages/core" },
+    { "path": "services/context-service" },
+    { "path": "apps/dashboard" }
+  ]
 }

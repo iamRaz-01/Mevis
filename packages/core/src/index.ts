@@ -1,11 +1,5 @@
-/**
- * Basic validation utility for MEVIS entities.
- */
-export interface Entity {
-  id: string;
-  type: string;
-  status: string;
-}
+import { Entity } from '@mevis/shared-types';
+export { Entity } from '@mevis/shared-types';
 
 /**
  * Validates that an entity contains all required metadata.

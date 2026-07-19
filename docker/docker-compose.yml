@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  context-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - LOG_LEVEL=info
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/context-service

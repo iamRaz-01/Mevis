@@ -1,0 +1,12 @@
+{
+  "name": "@mevis/config",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Environment configuration parser helper for MEVIS",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
+}

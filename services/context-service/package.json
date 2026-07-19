@@ -1,8 +1,8 @@
 {
-  "name": "@mevis/core",
+  "name": "@mevis/context-service",
   "version": "1.0.0",
   "private": true,
-  "description": "Shared core utility functions and typings for MEVIS",
+  "description": "MEVIS Context Intelligence microservice stub",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "scripts": {
@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mevis/core": "^1.0.0",
+    "@mevis/config": "^1.0.0",
+    "@mevis/logger": "^1.0.0",
     "@mevis/shared-types": "^1.0.0"
   }
 }

@@ -1,0 +1,27 @@
+# MEVIS Decision Fallback Strategies
+# Defines default procedures when reasoning fails due to telemetry timeouts or policy engine locks.
+
+strategies:
+  - trigger: RAG_STARVATION
+    description: 'Fires when no supporting SOP is found in Knowledge Base.'
+    action: 'Do not generate recommendation. Raise Request For Information (RFI) to Supervisor.'
+    default_confidence: 0.10
+    escalation: Supervisor
+
+  - trigger: CONTEXT_STARVATION
+    description: 'Fires when key context metrics are missing or staler than 30 seconds.'
+    action: 'Halt auto-release. Fall back to manual dispatcher console routing. Mark recommendation confidence as LOW.'
+    default_confidence: 0.30
+    escalation: Coordinator
+
+  - trigger: POLICY_ENGINE_TIMEOUT
+    description: 'Fires when Policy Engine validation does not respond within 3 seconds.'
+    action: 'Fail-closed. Automatically reject draft recommendations and trigger coordinator warning alert.'
+    default_confidence: 0.00
+    escalation: Coordinator
+
+  - trigger: SENSOR_DISAGREEMENT
+    description: 'Fires when two telemetry sources of different ratings conflict.'
+    action: 'Apply Trust Score Precedence. If unresolved, dispatch a physical verification task to nearest volunteer.'
+    default_confidence: 0.50
+    escalation: Supervisor

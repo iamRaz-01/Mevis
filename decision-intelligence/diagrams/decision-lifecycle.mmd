@@ -1,0 +1,16 @@
+stateDiagram-v2
+    [*] --> Created : Ingest observation
+    Created --> Analyzed : Context compiled
+    Analyzed --> RiskAssessed : Multi-risk computed
+    RiskAssessed --> PolicyValidated : Invariant check
+    
+    PolicyValidated --> Recommended : Compliance OK
+    PolicyValidated --> Rejected : Policy block
+    
+    Recommended --> Presented : Render on screen console
+    Presented --> Accepted : Operator click / Auto-release
+    Presented --> Rejected : Operator dismisses / Override
+    
+    Accepted --> Executed : Tasks complete
+    Executed --> Evaluated : Outcomes logged
+    Evaluated --> Archived : Committed to memory

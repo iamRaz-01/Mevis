@@ -1,0 +1,70 @@
+# MEVIS Decision Contract Schema
+# Defines input, output, and metadata schemas for a Decision request object.
+
+metadata:
+  decision_id: { type: string, pattern: '^dec_[a-zA-Z0-9_-]+$' }
+  correlation_id: { type: string }
+  timestamp: { type: string, format: date-time }
+  schema_version: { type: string, default: '1.0' }
+  decision_category:
+    {
+      type: string,
+      enum:
+        [
+          Navigation,
+          Medical,
+          Security,
+          Accessibility,
+          Volunteer,
+          Transport,
+          Operational,
+          Emergency,
+        ],
+    }
+
+inputs:
+  observation_id: { type: string }
+  context:
+    venue_id: { type: string }
+    zone_id: { type: string }
+    gate_id: { type: string }
+    active_volunteers: { type: array, item_type: string }
+    weather: { type: object }
+  evidence:
+    type: array
+    items:
+      id: { type: string }
+      source: { type: string }
+      trust_score: { type: number }
+      freshness: { type: number }
+  policies:
+    type: array
+    items: { type: string }
+  constraints:
+    type: array
+    items: { type: string }
+
+outputs:
+  recommendation:
+    proposed_actions: { type: array, item_type: string }
+    estimated_execution_time_minutes: { type: integer }
+  explanation:
+    summary: { type: string }
+    supporting_evidence_ids: { type: array, item_type: string }
+    assumptions: { type: array, item_type: string }
+    rejected_alternatives: { type: array, item_type: string }
+    remaining_risks: { type: array, item_type: string }
+    applied_policy_ids: { type: array, item_type: string }
+  confidence:
+    score: { type: number, minimum: 0.0, maximum: 1.0 }
+    evidence_weight: { type: number }
+    freshness_weight: { type: number }
+  risk_profile:
+    safety_risk: { type: integer, minimum: 1, maximum: 5 }
+    operational_risk: { type: integer, minimum: 1, maximum: 5 }
+    reputational_risk: { type: integer, minimum: 1, maximum: 5 }
+    resource_risk: { type: integer, minimum: 1, maximum: 5 }
+    time_criticality: { type: integer, minimum: 1, maximum: 5 }
+  required_approvals:
+    type: array
+    items: { type: string, enum: [Volunteer, Supervisor, Coordinator] }

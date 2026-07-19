@@ -1,0 +1,15 @@
+flowchart TD
+    obs[Stage 1: Observation Ingestion] --> ctx[Stage 2: Context Assembly]
+    ctx --> sit[Stage 3: Situation Assessment]
+    sit --> evd[Stage 4: Evidence Collection]
+    evd --> hyp[Stage 5: Hypothesis Generation]
+    hyp --> reas[Stage 6: Reasoning Engine]
+    reas --> risk[Stage 7: Risk Assessment]
+    risk --> pol[Stage 8: Policy Validation]
+    pol --> rec[Stage 9: Recommendation Gen]
+    rec --> exp[Stage 10: Explanation Gen]
+    exp --> app[Stage 11: Human Approval Gate]
+    app --> exec[Stage 12: Execution Dispatch]
+    exec --> eval[Stage 13: Outcome Evaluation]
+    eval --> learn[Stage 14: Long-Term Memory Learning]
+    learn -. feedback loop .-> reas

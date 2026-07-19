@@ -1,0 +1,59 @@
+# MEVIS Decision Intelligence Simulation Case
+# Evaluates reasoning pipelines and outputs for medical emergencies.
+
+scenario:
+  id: sim_dec_medical_emergency
+  name: 'Medical Emergency Turnstile Collapse'
+  input_observations:
+    - id: obs_medical_001
+      source: 'Volunteer App'
+      timestamp: '2026-07-19T13:30:00Z'
+      raw_content: 'Spectator collapsed at Gate B12; unconscious but breathing.'
+      source_trust: 0.85
+
+  input_context:
+    venue_id: 'ven_stadium_01'
+    zone_id: 'zon_north_concourse'
+    gate_id: 'gat_entry_12'
+    weather:
+      condition: 'Clear'
+      temperature_celsius: 28.0
+    active_volunteers:
+      - vol_steward_104
+    active_medical_teams:
+      - med_team_3
+
+  grounding_evidence:
+    - id: evd_sop_14_triage
+      source: 'sop_unconscious_spectator'
+      source_type: 'SOP'
+      trust_score: 0.90
+      content: 'For unconscious breathing spectator, secure space, dispatch nearest BLS medical team, and prepare transport escort.'
+
+  expected_reasoning:
+    target_hypotheses:
+      - id: hyp_heatstroke
+        description: 'Heatstroke collapse'
+        probability_threshold: 0.60
+      - id: hyp_cardiac
+        description: 'Cardiac arrest collapse'
+        probability_threshold: 0.20
+    risk_assessment:
+      safety_risk: 5
+      operational_risk: 2
+      time_criticality: 5
+    expected_policy_ids:
+      - pol_medical_dispatch_rules
+
+  expected_recommendation:
+    proposed_actions:
+      - 'Dispatch Medical Team 3 to Gate B12 concourse.'
+      - 'Steward vol_steward_104 secure perimeter at Gate B12.'
+    confidence_min: 0.85
+    required_approvals:
+      - Supervisor
+
+  expected_explanation:
+    summary: 'Dispatch Medical Team 3 to treat unconscious spectator.'
+    applied_policy_ids:
+      - pol_medical_dispatch_rules

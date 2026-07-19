@@ -1,0 +1,13 @@
+flowchart TD
+    %% Escalation rules flowchart
+    rec[Recommendation Ready] --> checkRisk{Evaluate Safety Risk}
+    
+    checkRisk -- "Risk < 2 (Low)" --> auto[Auto-execution / Dispatch]
+    checkRisk -- "Risk 2 - 3 (Medium)" --> sup[Supervisor Approval Required]
+    checkRisk -- "Risk >= 4 (Critical)" --> coord[Coordinator Approval Lock]
+    
+    sup --> |Approved| auto
+    sup --> |Rejected/Override| manual[Manual Planner Override]
+    
+    coord --> |Approved| auto
+    coord --> |Rejected/Override| manual

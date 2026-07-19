@@ -1,0 +1,15 @@
+graph TD
+    sit[Assessed Situation: Gate congestion] --> hypGen[Hypothesis Generation]
+    
+    hypGen --> hypA[Hypothesis A: Scanner offline - 10%]
+    hypGen --> hypB[Hypothesis B: Queue bottleneck - 65%]
+    hypGen --> hypC[Hypothesis C: Medical roadblock - 25%]
+    
+    hypA --> |Pruning: Network ping OK| pruneA[PRUNED]
+    
+    hypB --> |Verification: Turnstile count active| checkB[REASONED]
+    hypC --> |Verification: No medical dispatch active| checkC[SECONDARY]
+    
+    checkB --> risk[Multidimensional Risk Matrix]
+    risk --> pol[Policy Check validation]
+    pol --> rec[Final Recommendation compilation]

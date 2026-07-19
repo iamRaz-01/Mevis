@@ -1,0 +1,53 @@
+# MEVIS Decision Intelligence Simulation Case
+# Evaluates reasoning pipelines and outputs for missing child alerts.
+
+scenario:
+  id: sim_dec_lost_child
+  name: 'Missing Child food Concourse Search'
+  input_observations:
+    - id: obs_lostchild_201
+      source: 'Volunteer App'
+      timestamp: '2026-07-19T16:10:00Z'
+      raw_content: 'Parent reports missing 6-year-old child in red shirt last seen near food stalls.'
+      source_trust: 0.80
+
+  input_context:
+    venue_id: 'ven_stadium_01'
+    zone_id: 'zon_north_concourse'
+    gate_id: 'gat_entry_12'
+    active_volunteers:
+      - vol_steward_104
+      - vol_steward_108
+
+  grounding_evidence:
+    - id: evd_sop_09_missing
+      source: 'sop_missing_person'
+      source_type: 'SOP'
+      trust_score: 0.90
+      content: 'Upon missing child report, assign one steward to stay with parent, broadcast description to zone staff, and alert exit gates.'
+
+  expected_reasoning:
+    target_hypotheses:
+      - id: hyp_wandered
+        description: 'Child wandered near concourse or exits'
+        probability_threshold: 0.80
+    risk_assessment:
+      safety_risk: 4
+      operational_risk: 1
+      time_criticality: 4
+    expected_policy_ids:
+      - pol_privacy_missing_person
+
+  expected_recommendation:
+    proposed_actions:
+      - 'Steward vol_steward_104 stay with parent.'
+      - 'Broadcast description alert to all zone stewards.'
+      - 'Place Gates C12-C14 on description alert.'
+    confidence_min: 0.85
+    required_approvals:
+      - Supervisor
+
+  expected_explanation:
+    summary: 'Trigger missing child search loops in concourse North.'
+    applied_policy_ids:
+      - pol_privacy_missing_person

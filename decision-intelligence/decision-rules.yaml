@@ -1,0 +1,32 @@
+# MEVIS Decision Operational Rules
+# Enforces validation constraints, confidence thresholds, and risk escalation rules.
+
+rules:
+  - id: DEC-RULE-001
+    name: HighRiskEnforcement
+    description: 'Emergency decisions require complete multi-source evidence and Coordinator sign-off.'
+    matching_categories: [Emergency, Security]
+    minimum_evidence_sources: 2
+    validation_required: true
+    human_approval: Coordinator
+
+  - id: DEC-RULE-002
+    name: AutoReleaseAllowed
+    description: 'Low-risk decisions with high confidence can execute autonomously without human gates.'
+    matching_categories: [Accessibility, Volunteer]
+    max_safety_risk: 1
+    minimum_confidence_score: 0.85
+    human_approval: None
+
+  - id: DEC-RULE-003
+    name: ContextFreshnessLimit
+    description: 'Block decision generation if key telemetry parameters are staler than 30 seconds.'
+    max_context_age_seconds: 30
+    action_on_violation: 'Degrade to Manual Triage Mode, set confidence to LOW'
+
+  - id: DEC-RULE-004
+    name: RiskEscalationTrigger
+    description: 'Any recommendation where Safety Risk exceeds 3 must be locked and escalated to Coordinator.'
+    trigger_condition: 'risk_profile.safety_risk >= 4'
+    escalation_path: Coordinator
+    approval_lock: true

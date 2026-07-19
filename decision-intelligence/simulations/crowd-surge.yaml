@@ -1,0 +1,55 @@
+# MEVIS Decision Intelligence Simulation Case
+# Evaluates reasoning pipelines and outputs for crowd surges.
+
+scenario:
+  id: sim_dec_crowd_surge
+  name: 'Turnstile Ingress Bottleneck'
+  input_observations:
+    - id: obs_surge_101
+      source: 'Camera'
+      timestamp: '2026-07-19T14:01:00Z'
+      raw_content: 'Density at Gate C3 exceeds 4.5 people/sqm.'
+      source_trust: 0.95
+
+  input_context:
+    venue_id: 'ven_stadium_01'
+    zone_id: 'zon_north_concourse'
+    gate_id: 'gat_entry_03'
+    weather:
+      condition: 'Clear'
+    active_volunteers:
+      - vol_steward_104
+      - vol_steward_108
+
+  grounding_evidence:
+    - id: evd_sop_22_crowd
+      source: 'sop_crowd_control'
+      source_type: 'SOP'
+      trust_score: 0.90
+      content: 'When crowd density at entry gates exceeds 4 people/sqm, open adjacent auxiliary gates, and route stewards to redirect queues.'
+
+  expected_reasoning:
+    target_hypotheses:
+      - id: hyp_bottleneck
+        description: 'Turnstile scanner slowdown bottleneck'
+        probability_threshold: 0.70
+    risk_assessment:
+      safety_risk: 4
+      operational_risk: 4
+      time_criticality: 4
+    expected_policy_ids:
+      - pol_gate_override_policy
+
+  expected_recommendation:
+    proposed_actions:
+      - 'Lock Gate C3 ingress turnstiles.'
+      - 'Open adjacent Gate C4 exit override.'
+      - 'Dispatch stewards vol_steward_104 and vol_steward_108 to redirect queues.'
+    confidence_min: 0.85
+    required_approvals:
+      - Coordinator
+
+  expected_explanation:
+    summary: 'Open Gate C4 and redirect crowd to split turnstile bottleneck.'
+    applied_policy_ids:
+      - pol_gate_override_policy

@@ -1,0 +1,55 @@
+# MEVIS Decision Approval Policies
+# Maps decision categories and risk thresholds to authority levels.
+
+policies:
+  - category: Emergency
+    min_authority: Coordinator
+    audit_required: true
+    override_reason_required: true
+    auto_execute: false
+
+  - category: Security
+    min_authority: Coordinator
+    audit_required: true
+    override_reason_required: true
+    auto_execute: false
+
+  - category: Medical
+    min_authority: Supervisor
+    audit_required: true
+    override_reason_required: true
+    auto_execute: false
+
+  - category: Transport
+    min_authority: Supervisor
+    audit_required: true
+    override_reason_required: false
+    auto_execute: false
+
+  - category: Operational
+    min_authority: Supervisor
+    audit_required: false
+    override_reason_required: false
+    auto_execute: true
+    auto_execute_threshold: 0.90
+
+  - category: Navigation
+    min_authority: Volunteer
+    audit_required: false
+    override_reason_required: false
+    auto_execute: true
+    auto_execute_threshold: 0.80
+
+  - category: Volunteer
+    min_authority: Volunteer
+    audit_required: false
+    override_reason_required: false
+    auto_execute: true
+    auto_execute_threshold: 0.80
+
+  - category: Accessibility
+    min_authority: Volunteer
+    audit_required: false
+    override_reason_required: false
+    auto_execute: true
+    auto_execute_threshold: 0.75

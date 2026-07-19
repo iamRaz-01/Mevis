@@ -1,0 +1,54 @@
+# MEVIS Decision Intelligence Simulation Case
+# Evaluates reasoning pipelines and outputs for security breaches.
+
+scenario:
+  id: sim_dec_security_alert
+  name: 'Sector East Perimeter breach'
+  input_observations:
+    - id: obs_breach_301
+      source: 'Sensor'
+      timestamp: '2026-07-19T19:00:00Z'
+      raw_content: 'Security door 7 opened without credential scan in sector East.'
+      source_trust: 0.95
+
+  input_context:
+    venue_id: 'ven_stadium_01'
+    zone_id: 'zon_east_perimeter'
+    gate_id: 'gat_perimeter_07'
+    active_volunteers:
+      - vol_steward_104
+    active_security_patrols:
+      - sec_patrol_2
+
+  grounding_evidence:
+    - id: evd_sop_07_intrusion
+      source: 'sop_security_perimeter'
+      source_type: 'SOP'
+      trust_score: 0.90
+      content: 'When breach sensor triggers, lock adjacent gates immediately, dispatch security patrol to sweep, and place turnstile stewards on alert.'
+
+  expected_reasoning:
+    target_hypotheses:
+      - id: hyp_intrusion
+        description: 'Perimeter breach intrusion'
+        probability_threshold: 0.90
+    risk_assessment:
+      safety_risk: 3
+      operational_risk: 2
+      time_criticality: 4
+    expected_policy_ids:
+      - pol_perimeter_containment_rules
+
+  expected_recommendation:
+    proposed_actions:
+      - 'Dispatch security patrol 2 to sweep Gate 7.'
+      - 'Remote lock Gate 7 perimeter door.'
+      - 'Place Gate E3 turnstiles stewards on monitor alert.'
+    confidence_min: 0.85
+    required_approvals:
+      - Coordinator
+
+  expected_explanation:
+    summary: 'Dispatch security to intercept intrusion breach at sector East.'
+    applied_policy_ids:
+      - pol_perimeter_containment_rules

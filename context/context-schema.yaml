@@ -1,0 +1,15 @@
+# MEVIS Canonical Context Logical Schema Map
+# Implementation independent outline
+
+context_definition:
+  id_pattern: '^ctx_[a-zA-Z0-9_-]+$'
+  metadata:
+    - name: 'version'
+      type: 'Integer'
+    - name: 'confidence'
+      type: 'Float'
+  composition:
+    sources:
+      - 'world_state'
+      - 'knowledge_base'
+      - 'policies'

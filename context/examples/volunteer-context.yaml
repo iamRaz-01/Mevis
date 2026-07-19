@@ -1,0 +1,15 @@
+# MEVIS Context Intelligence Mock Example
+# Represents a volunteer shift assignment reasoning context.
+
+decision_context:
+  context_id: 'ctx_volunteer_patrol_104'
+  context_type: 'Operational'
+  decision_scope: 'patrol_sector_assignment_policy'
+  version: 12
+  confidence: 0.90
+  freshness: 12.0
+  entities:
+    - id: 'vol_steward_104'
+      relevance: 'Critical'
+    - id: 'zon_north_concourse'
+      relevance: 'High'

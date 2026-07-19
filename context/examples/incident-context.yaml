@@ -1,0 +1,17 @@
+# MEVIS Context Intelligence Mock Example
+# Represents a local incident dispatch reasoning context.
+
+decision_context:
+  context_id: 'ctx_incident_dispatch_204'
+  context_type: 'Incident'
+  decision_scope: 'steward_responder_dispatch_policy'
+  version: 3
+  confidence: 0.95
+  freshness: 8.5
+  entities:
+    - id: 'inc_medical_001'
+      relevance: 'Critical'
+    - id: 'vol_steward_104'
+      relevance: 'High'
+    - id: 'gat_entry_12'
+      relevance: 'Medium'

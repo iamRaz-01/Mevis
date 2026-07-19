@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Composing : Target decision triggers context request
+    Composing --> Validating : Context composition compiled
+    Validating --> Active : Checks pass, published
+    Active --> Stale : Validity age threshold exceeded
+    Stale --> Expired : Evicted from live reasoning cache
+    Expired --> Archived : Long-term trace logging completed
+    Archived --> [*]

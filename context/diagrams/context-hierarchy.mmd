@@ -1,0 +1,7 @@
+graph TD
+    subgraph Context Containment Tree
+        global[Global Context] --> venue[Venue Context: Stadium]
+        venue --> zone[Zone Context: Concourse]
+        zone --> incident[Incident Context: Incident #204]
+        incident --> volunteer[Volunteer Context: Steward]
+    end

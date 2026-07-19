@@ -1,0 +1,6 @@
+graph TD
+    c1[Context Object] -->|Provides minimal state| re[Reasoning Engine]
+    c1 -->|Attaches SOP constraints| pe[Policy Evaluation]
+    c1 -->|Indexes historical parameters| sim[Simulation stress tests]
+    
+    re -->|Traces| dec[Decision Object output]

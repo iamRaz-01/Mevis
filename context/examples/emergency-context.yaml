@@ -1,0 +1,19 @@
+# MEVIS Context Intelligence Mock Example
+# Represents a severe weather evacuation reasoning context.
+
+decision_context:
+  context_id: 'ctx_weather_evacuation_003'
+  context_type: 'Emergency'
+  decision_scope: 'weather_evacuation_level_3_policy'
+  version: 1
+  confidence: 0.99
+  freshness: 2.0
+  entities:
+    - id: 'ven_lusail_01'
+      relevance: 'Critical'
+    - id: 'zon_north_concourse'
+      relevance: 'Critical'
+    - id: 'gat_entry_12'
+      relevance: 'High'
+    - id: 'vol_steward_104'
+      relevance: 'High'

@@ -1,0 +1,17 @@
+# MEVIS Context Intelligence Mock Example
+# Represents a medical emergency dispatch reasoning context.
+
+decision_context:
+  context_id: 'ctx_medical_dispatch_001'
+  context_type: 'Medical'
+  decision_scope: 'medical_triage_level_2_policy'
+  version: 2
+  confidence: 0.98
+  freshness: 4.2
+  entities:
+    - id: 'inc_medical_001'
+      relevance: 'Critical'
+    - id: 'med_team_3'
+      relevance: 'Critical'
+    - id: 'vol_steward_108'
+      relevance: 'High'

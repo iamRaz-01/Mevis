@@ -62,6 +62,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock delta and sync update snapshots
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Ingestion flow, sync lifecycles, and lineage Mermaid charts
+├── context/            # Canonical context intelligence and decision-relevant snapshots
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock incident, volunteer, and emergency context objects
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Containment hierarchy, composition filters, and lifecycle Mermaid charts
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

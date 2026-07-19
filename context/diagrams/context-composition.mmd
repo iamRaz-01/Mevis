@@ -1,0 +1,9 @@
+flowchart TD
+    %% Ingress composition layers
+    ws[World State Engine] -->|Spatial/Entity Filter| compose[Context Composer]
+    kb[Knowledge Base SOPs] -->|Vector Similarity Search| compose
+    pol[Operational Policies] -->|Constraint Mapping| compose
+    hist[Historical KPI Metrics] -->|Context Decay weights| compose
+    
+    compose -->|Synthesize minimal subset| ctx[Context Object Payload]
+    ctx -->|Feed relevant variables| ai[AI Reasoning System]

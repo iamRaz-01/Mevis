@@ -1610,4 +1610,417 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.strictEqual(data.roles.length, 3);
     assert.strictEqual(data.profiles[0].role, "ROLE_ADMIN");
   });
+
+  // ─── AI Experience Runtime v1 Tests (Issue #5) ────────────────────────────
+
+  test("126. Verify GET /runtime/ai/v1/health returns runtime health status", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/v1/health");
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.status, "healthy");
+    assert.strictEqual(data.version, "v1");
+    assert.ok(data.components);
+    assert.strictEqual(data.components.aiGateway, "ok");
+    assert.strictEqual(data.components.router, "ok");
+    assert.strictEqual(data.components.streaming, "ok");
+    assert.strictEqual(data.components.analytics, "ok");
+    assert.strictEqual(data.components.audit, "ok");
+    assert.strictEqual(data.components.playback, "ok");
+  });
+
+  test("127. Verify GET /runtime/ai/v1/capabilities returns capability catalogue", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/capabilities",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const caps = res.payload.data;
+    assert.ok(Array.isArray(caps));
+    assert.ok(caps.length >= 13);
+    const capNames = caps.map((c: any) => c.capability);
+    assert.ok(capNames.includes("CHAT"));
+    assert.ok(capNames.includes("COPILOT_INCIDENT"));
+    assert.ok(capNames.includes("PREDICT_CROWD"));
+    assert.ok(capNames.includes("GENERATE_REPORT"));
+  });
+
+  let v1RequestId: string;
+  let v1AuditId: string;
+  let v1PlaybackRequestId: string;
+
+  test("128. Verify POST /runtime/ai/v1/chat executes full pipeline and returns AIExperienceResponse", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/chat",
+      { message: "What is the current crowd density at Gate A?" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.requestId);
+    assert.ok(data.sessionId);
+    assert.strictEqual(data.capability, "CHAT");
+    assert.ok(data.routedTo);
+    assert.ok(data.generatedText);
+    assert.ok(data.trustPackageId);
+    assert.ok(typeof data.overallConfidence === "number");
+    assert.ok(data.auditId);
+    assert.ok(data.playbackId);
+    assert.strictEqual(data.streamed, false);
+    assert.ok(typeof data.latencyMs === "number");
+    v1RequestId = data.requestId;
+    v1AuditId = data.auditId;
+    v1PlaybackRequestId = data.requestId;
+  });
+
+  test("129. Verify POST /runtime/ai/v1/chat/stream returns streaming chunks", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/chat/stream",
+      { message: "Provide a live update on operational status" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.requestId);
+    assert.strictEqual(data.streamed, true);
+    assert.ok(Array.isArray(data.streamChunks));
+    assert.ok(data.streamChunks.length > 0);
+    const lastChunk = data.streamChunks[data.streamChunks.length - 1];
+    assert.strictEqual(lastChunk.isFinal, true);
+  });
+
+  test("130. Verify GET /runtime/ai/v1/chat/history returns chat interactions", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/chat/history",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const history = res.payload.data;
+    assert.ok(Array.isArray(history));
+    const chatItems = history.filter((r: any) => r.capability === "CHAT");
+    assert.ok(chatItems.length >= 1);
+  });
+
+  test("131. Verify POST /runtime/ai/v1/chat/continue continues an existing session", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/chat/continue",
+      { message: "Can you elaborate on the Gate B situation?", sessionId: undefined },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.requestId);
+    assert.strictEqual(data.capability, "CHAT");
+    assert.ok(data.generatedText);
+  });
+
+  test("132. Verify POST /runtime/ai/v1/copilot/incident returns incident analysis", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/copilot/incident",
+      { query: "Analyze the current crowd surge incident at North Gate" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.requestId);
+    assert.strictEqual(data.capability, "COPILOT_INCIDENT");
+    assert.ok(data.generatedText);
+    assert.ok(data.trustPackageId);
+    assert.ok(data.auditId);
+  });
+
+  test("133. Verify POST /runtime/ai/v1/copilot/planning returns planning assistance", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/copilot/planning",
+      { query: "Help plan volunteer deployment for the opening ceremony" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "COPILOT_PLANNING");
+    assert.ok(data.generatedText);
+    assert.ok(data.auditId);
+  });
+
+  test("134. Verify POST /runtime/ai/v1/copilot/operations returns operations copilot", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/copilot/operations",
+      { query: "Current operational issues needing immediate attention" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "COPILOT_OPERATIONS");
+    assert.ok(data.generatedText);
+  });
+
+  test("135. Verify POST /runtime/ai/v1/copilot/recommendation returns recommendations", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/copilot/recommendation",
+      { query: "Recommend actions to improve volunteer deployment efficiency" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "COPILOT_RECOMMENDATION");
+    assert.ok(data.generatedText);
+    assert.ok(data.trustPackageId);
+  });
+
+  test("136. Verify POST /runtime/ai/v1/predict/incident returns incident prediction", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/predict/incident",
+      {},
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "PREDICT_INCIDENT");
+    assert.ok(data.generatedText);
+    assert.ok(data.overallConfidence > 0);
+  });
+
+  test("137. Verify POST /runtime/ai/v1/predict/crowd returns crowd prediction", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/predict/crowd",
+      { query: "Forecast crowd surge risk for halftime break" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "PREDICT_CROWD");
+    assert.ok(data.generatedText);
+  });
+
+  test("138. Verify POST /runtime/ai/v1/predict/resource returns resource prediction", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/predict/resource",
+      {},
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "PREDICT_RESOURCE");
+    assert.ok(data.generatedText);
+    assert.ok(data.auditId);
+  });
+
+  test("139. Verify POST /runtime/ai/v1/predict/volunteer returns volunteer prediction", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/predict/volunteer",
+      {},
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "PREDICT_VOLUNTEER");
+    assert.ok(data.generatedText);
+  });
+
+  test("140. Verify POST /runtime/ai/v1/generate/report returns structured report", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/generate/report",
+      { query: "Generate end-of-day operational summary report" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "GENERATE_REPORT");
+    assert.ok(data.generatedText);
+    assert.ok(data.trustPackageId);
+    assert.ok(data.playbackId);
+  });
+
+  test("141. Verify POST /runtime/ai/v1/generate/summary returns executive summary", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/generate/summary",
+      { query: "Summarize key operational metrics for the day" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "GENERATE_SUMMARY");
+    assert.ok(data.generatedText);
+  });
+
+  test("142. Verify POST /runtime/ai/v1/generate/shift-notes returns shift notes", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/generate/shift-notes",
+      { query: "Generate shift handover notes for the evening team" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "GENERATE_SHIFT_NOTES");
+    assert.ok(data.generatedText);
+    assert.ok(data.auditId);
+  });
+
+  test("143. Verify POST /runtime/ai/v1/generate/after-action returns after-action review", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/v1/generate/after-action",
+      { query: "Generate after-action review for the match day operations" },
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.capability, "GENERATE_AFTER_ACTION");
+    assert.ok(data.generatedText);
+    assert.ok(data.trustPackageId);
+  });
+
+  test("144. Verify GET /runtime/ai/v1/history returns full AI interaction history", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/history",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const history = res.payload.data;
+    assert.ok(Array.isArray(history));
+    assert.ok(history.length >= 1);
+    const item = history[0];
+    assert.ok(item.capability);
+    assert.ok(item.actorId);
+    assert.ok(item.query);
+  });
+
+  test("145. Verify GET /runtime/ai/v1/sessions returns active AI sessions", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/sessions",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const sessions = res.payload.data;
+    assert.ok(Array.isArray(sessions));
+  });
+
+  test("146. Verify GET /runtime/ai/v1/analytics returns usage analytics dashboard", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/analytics",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const dash = res.payload.data;
+    assert.ok(typeof dash.totalRequests === "number");
+    assert.ok(dash.totalRequests >= 1);
+    assert.ok(typeof dash.byCapability === "object");
+    assert.ok(typeof dash.avgLatencyMs === "number");
+    assert.ok(typeof dash.totalInputTokens === "number");
+    assert.ok(typeof dash.totalOutputTokens === "number");
+    assert.ok(Array.isArray(dash.recentEvents));
+  });
+
+  test("147. Verify GET /runtime/ai/v1/analytics/metrics returns granular metrics", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/analytics/metrics",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const metrics = res.payload.data;
+    assert.ok(Array.isArray(metrics.usage));
+    assert.ok(Array.isArray(metrics.prompts));
+    assert.ok(metrics.usage.length >= 1);
+    const m = metrics.usage[0];
+    assert.ok(m.capability);
+    assert.ok(typeof m.inputTokens === "number");
+    assert.ok(typeof m.latencyTotalMs === "number");
+  });
+
+  test("148. Verify GET /runtime/ai/v1/audit returns immutable audit log", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/audit",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const records = res.payload.data;
+    assert.ok(Array.isArray(records));
+    assert.ok(records.length >= 1);
+    const r = records[0];
+    assert.ok(r.id);
+    assert.ok(r.requestId);
+    assert.ok(r.actorId);
+    assert.ok(r.capability);
+    assert.ok(r.immutableHash);
+    assert.ok(r.occurredAt);
+  });
+
+  test("149. Verify GET /runtime/ai/v1/audit/:id returns single audit record", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/v1/audit/${v1AuditId}`,
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const record = res.payload.data;
+    assert.strictEqual(record.id, v1AuditId);
+    assert.ok(record.immutableHash);
+    assert.ok(typeof record.policyChecksPassed === "boolean");
+    assert.strictEqual(record.policyChecksPassed, true);
+  });
+
+  test("150. Verify GET /runtime/ai/v1/playback/:requestId reconstructs interaction lifecycle", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/v1/playback/${v1PlaybackRequestId}`,
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const record = res.payload.data;
+    assert.ok(record.id);
+    assert.ok(record.requestId);
+    assert.ok(record.userRequest);
+    assert.ok(record.reasoningSnapshot);
+    assert.ok(record.generationSnapshot);
+    assert.ok(record.trustSnapshot);
+    assert.ok(record.deliveryMetadata);
+    assert.ok(record.createdAt);
+  });
+
+  test("151. Verify GET /runtime/ai/v1/playback returns list of all playback records", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/runtime/ai/v1/playback",
+      undefined,
+      { "x-actor-role": "ROLE_ADMIN", "x-volunteer-id": masterVolunteerId }
+    );
+    assert.strictEqual(res.status, 200);
+    const records = res.payload.data;
+    assert.ok(Array.isArray(records));
+    assert.ok(records.length >= 1);
+    const r = records[0];
+    assert.ok(r.id);
+    assert.ok(r.requestId);
+    assert.ok(r.userRequest);
+    assert.ok(r.createdAt);
+  });
 });

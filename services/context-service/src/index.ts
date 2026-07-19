@@ -61,6 +61,14 @@ import {
   ReasoningTraceRepository,
   ConfidenceScoreRepository,
   ResponseFeedbackRepository,
+  AiRequestRepository,
+  AiExperienceRouteRepository,
+  AiStreamingSessionRepository,
+  AiUsageMetricRepository,
+  AiPromptMetricRepository,
+  AiAnalyticsEventRepository,
+  AiAuditRecordRepository,
+  AiPlaybackRecordRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -171,6 +179,13 @@ import { ConfidenceEngine } from "./ai/trust/confidence-engine";
 import { PersonalizationEngine } from "./ai/trust/personalization-engine";
 import { FeedbackEngine } from "./ai/trust/feedback-engine";
 import { TrustOrchestrator } from "./ai/trust/orchestrator";
+
+import { ExperienceGateway } from "./ai/runtime/experience-gateway";
+import { ExperienceRouter } from "./ai/runtime/experience-router";
+import { StreamingEngine } from "./ai/runtime/streaming-engine";
+import { AiAnalyticsEngine } from "./ai/runtime/analytics-engine";
+import { AiAuditRuntime } from "./ai/runtime/audit-runtime";
+import { AiPlaybackEngine } from "./ai/runtime/playback-engine";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -607,6 +622,72 @@ const trustOrchestrator = new TrustOrchestrator(
 );
 
 const feedbackEngine = new FeedbackEngine(responseFeedbackRepo);
+
+// ─── AI Experience Runtime (Issue #5) ────────────────────────────────────────
+
+const aiRequestRepo = new AiRequestRepository(dbClient);
+const aiExperienceRouteRepo = new AiExperienceRouteRepository(dbClient);
+const aiStreamingSessionRepo = new AiStreamingSessionRepository(dbClient);
+const aiUsageMetricRepo = new AiUsageMetricRepository(dbClient);
+const aiPromptMetricRepo = new AiPromptMetricRepository(dbClient);
+const aiAnalyticsEventRepo = new AiAnalyticsEventRepository(dbClient);
+const aiAuditRecordRepo = new AiAuditRecordRepository(dbClient);
+const aiPlaybackRecordRepo = new AiPlaybackRecordRepository(dbClient);
+
+const experienceRouter = new ExperienceRouter({
+  saveRoute: async (row) => { await aiExperienceRouteRepo.save(row as any); },
+});
+
+const streamingEngine = new StreamingEngine({
+  saveSession: async (row) => { await aiStreamingSessionRepo.save(row as any); },
+  findSessionById: async (id) => aiStreamingSessionRepo.findById(id),
+  updateSession: async (id, updates) => aiStreamingSessionRepo.updateSession(id, updates),
+});
+
+const aiAnalyticsEngine = new AiAnalyticsEngine(
+  {
+    save: async (row) => { await aiUsageMetricRepo.save(row as any); },
+    findAll: async () => aiUsageMetricRepo.findAll(),
+  },
+  {
+    save: async (row) => { await aiPromptMetricRepo.save(row as any); },
+    findAll: async () => aiPromptMetricRepo.findAll(),
+  },
+  {
+    save: async (row) => { await aiAnalyticsEventRepo.save(row as any); },
+    findAll: async () => aiAnalyticsEventRepo.findAll(),
+  }
+);
+
+const aiAuditRuntime = new AiAuditRuntime({
+  save: async (row) => { await aiAuditRecordRepo.save(row as any); },
+  findAll: async () => aiAuditRecordRepo.findAll(),
+  findById: async (id) => aiAuditRecordRepo.findById(id),
+});
+
+const aiPlaybackEngine = new AiPlaybackEngine({
+  save: async (row) => { await aiPlaybackRecordRepo.save(row as any); },
+  findAll: async () => aiPlaybackRecordRepo.findAll(),
+  findByRequestId: async (reqId) => aiPlaybackRecordRepo.findByRequestId(reqId),
+});
+
+const experienceGateway = new ExperienceGateway(
+  {
+    save: async (row) => { await aiRequestRepo.save(row as any); },
+    findAll: async () => aiRequestRepo.findAll(),
+    findById: async (id) => aiRequestRepo.findById(id),
+  },
+  aiGateway,
+  cognitiveOrchestrator,
+  generationOrchestrator,
+  trustOrchestrator,
+  experienceRouter,
+  streamingEngine,
+  aiAnalyticsEngine,
+  aiAuditRuntime,
+  aiPlaybackEngine
+);
+
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -3046,7 +3127,380 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, data);
     }
 
+    // ─── AI Experience Runtime v1 Routes (Issue #5) ─────────────────────────────
+
+    // GET /runtime/ai/v1/health — AI runtime health check
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "health" && !segments[4]) {
+      return sendJson(res, 200, experienceGateway.getHealth());
+    }
+
+    // GET /runtime/ai/v1/capabilities — Registered capability catalogue
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "capabilities" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      return sendJson(res, 200, experienceRouter.listCapabilities());
+    }
+
+    // POST /runtime/ai/v1/chat — Unified conversational AI (full pipeline)
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "chat" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_USER",
+        capability: "CHAT",
+        query: body.message || body.query,
+        sessionId: body.sessionId,
+        contextualHints: body.contextualHints,
+        stream: false,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/chat/stream — Streaming chat response
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "chat" && segments[4] === "stream" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_USER",
+        capability: "CHAT",
+        query: body.message || body.query,
+        sessionId: body.sessionId,
+        contextualHints: body.contextualHints,
+        stream: true,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // GET /runtime/ai/v1/chat/history — Conversation history
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "chat" && segments[4] === "history" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const history = await experienceGateway.getHistory();
+      const chatHistory = history.filter((r: any) => r.capability === "CHAT");
+      return sendJson(res, 200, chatHistory);
+    }
+
+    // POST /runtime/ai/v1/chat/continue — Continue an existing conversation
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "chat" && segments[4] === "continue" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_USER",
+        capability: "CHAT",
+        query: body.message || body.query,
+        sessionId: body.sessionId,
+        stream: false,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // DELETE /runtime/ai/v1/chat/:sessionId — Close session
+    if (req.method === "DELETE" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "chat" && segments[4] && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      await aiGateway.sessions.deleteSession(segments[4]);
+      return sendJson(res, 200, { success: true, closedSessionId: segments[4] });
+    }
+
+    // POST /runtime/ai/v1/copilot/incident — AI-assisted incident analysis
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "copilot" && segments[4] === "incident" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "COPILOT_INCIDENT",
+        query: body.query || body.description,
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/copilot/planning — AI-assisted operational planning
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "copilot" && segments[4] === "planning" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "COPILOT_PLANNING",
+        query: body.query,
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/copilot/operations — AI operations copilot
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "copilot" && segments[4] === "operations" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "COPILOT_OPERATIONS",
+        query: body.query,
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/copilot/recommendation — AI recommendation copilot
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "copilot" && segments[4] === "recommendation" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "COPILOT_RECOMMENDATION",
+        query: body.query,
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/predict/incident — Incident prediction
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "predict" && segments[4] === "incident" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "PREDICT_INCIDENT",
+        query: body.query || "Predict incident risk for current operational context",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/predict/crowd — Crowd prediction
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "predict" && segments[4] === "crowd" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "PREDICT_CROWD",
+        query: body.query || "Predict crowd density and flow patterns",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/predict/resource — Resource prediction
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "predict" && segments[4] === "resource" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "PREDICT_RESOURCE",
+        query: body.query || "Predict resource requirements for event operations",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/predict/volunteer — Volunteer assignment prediction
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "predict" && segments[4] === "volunteer" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "PREDICT_VOLUNTEER",
+        query: body.query || "Predict optimal volunteer assignment for current context",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/generate/report — Structured report generation
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "generate" && segments[4] === "report" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "GENERATE_REPORT",
+        query: body.query || "Generate operational report",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/generate/summary — Executive summary generation
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "generate" && segments[4] === "summary" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "GENERATE_SUMMARY",
+        query: body.query || "Generate executive summary",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/generate/shift-notes — Shift notes generation
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "generate" && segments[4] === "shift-notes" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "GENERATE_SHIFT_NOTES",
+        query: body.query || "Generate shift handover notes",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // POST /runtime/ai/v1/generate/after-action — After-action review generation
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "generate" && segments[4] === "after-action" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const result = await experienceGateway.process({
+        requestId: `req_${Math.random().toString(36).slice(2, 10)}`,
+        actorId: ctx.actorId || "VOL-system",
+        actorRole: ctx.actorRole || "ROLE_COORDINATOR",
+        capability: "GENERATE_AFTER_ACTION",
+        query: body.query || "Generate after-action review",
+        contextualHints: body.contextualHints,
+      });
+      return sendJson(res, 200, result);
+    }
+
+    // GET /runtime/ai/v1/history — Full AI interaction history
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "history" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const history = await experienceGateway.getHistory();
+      return sendJson(res, 200, history);
+    }
+
+    // GET /runtime/ai/v1/sessions — Active AI runtime sessions
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "sessions" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const sessions = await aiSessionRepo.findAll();
+      return sendJson(res, 200, sessions);
+    }
+
+    // GET /runtime/ai/v1/analytics — Usage analytics dashboard
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "analytics" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const dashboard = await aiAnalyticsEngine.getDashboard();
+      return sendJson(res, 200, dashboard);
+    }
+
+    // GET /runtime/ai/v1/analytics/metrics — Granular prompt + token metrics
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "analytics" && segments[4] === "metrics" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const metrics = await aiAnalyticsEngine.getMetrics();
+      return sendJson(res, 200, metrics);
+    }
+
+    // GET /runtime/ai/v1/audit — Immutable audit log
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "audit" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const records = await aiAuditRuntime.getAll();
+      return sendJson(res, 200, records);
+    }
+
+    // GET /runtime/ai/v1/audit/:id — Single audit record
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "audit" && segments[4] && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const record = await aiAuditRuntime.getById(segments[4]);
+      if (!record) {
+        return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: `Audit record "${segments[4]}" not found.` }]);
+      }
+      return sendJson(res, 200, record);
+    }
+
+    // GET /runtime/ai/v1/playback/:requestId — Reconstruct full interaction lifecycle
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "playback" && segments[4] && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const record = await aiPlaybackEngine.reconstructInteraction(segments[4]);
+      if (!record) {
+        return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: `Playback record for request "${segments[4]}" not found.` }]);
+      }
+      return sendJson(res, 200, record);
+    }
+
+    // GET /runtime/ai/v1/playback — List all playback records
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "v1" && segments[3] === "playback" && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const records = await aiPlaybackEngine.listRecords();
+      return sendJson(res, 200, records);
+    }
+
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);
+
   } catch (err: any) {
     logger.error("Request handling error", { error: err?.message || String(err) });
     return sendJson(res, 500, undefined, [

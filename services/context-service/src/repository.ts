@@ -858,3 +858,176 @@ export class ResponseFeedbackRepository extends RelationalRepository<ResponseFee
     super(db, "response_feedback", ["id", "trust_id", "user_id", "feedback_type", "comment", "created_at"], "ResponseFeedback");
   }
 }
+
+// ─── AI Experience Runtime Repositories (V26) ──────────────────────────────
+
+export interface AiRequestEntity extends Identifiable<string> {
+  id: string;
+  actor_id: string;
+  actor_role: string;
+  capability: string;
+  query: string;
+  status: string;
+  session_id: string | null;
+  latency_ms: number | null;
+  created_at: string;
+}
+
+export class AiRequestRepository extends RelationalRepository<AiRequestEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_requests", ["id", "actor_id", "actor_role", "capability", "query", "status", "session_id", "latency_ms", "created_at"], "AiRequest");
+  }
+}
+
+export interface AiExperienceRouteEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  capability: string;
+  routed_to: string;
+  routing_reason: string | null;
+  created_at: string;
+}
+
+export class AiExperienceRouteRepository extends RelationalRepository<AiExperienceRouteEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_experience_routes", ["id", "request_id", "capability", "routed_to", "routing_reason", "created_at"], "AiExperienceRoute");
+  }
+}
+
+export interface AiStreamingSessionEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  status: string;
+  chunk_count: number;
+  opened_at: string;
+  closed_at: string | null;
+}
+
+export class AiStreamingSessionRepository extends RelationalRepository<AiStreamingSessionEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_streaming_sessions", ["id", "request_id", "status", "chunk_count", "opened_at", "closed_at"], "AiStreamingSession");
+  }
+
+  async updateSession(id: string, updates: Partial<{ status: string; chunk_count: number; closed_at: string }>): Promise<void> {
+    const sets: string[] = [];
+    const vals: unknown[] = [];
+    if (updates.status !== undefined) { sets.push("status = ?"); vals.push(updates.status); }
+    if (updates.chunk_count !== undefined) { sets.push("chunk_count = ?"); vals.push(updates.chunk_count); }
+    if (updates.closed_at !== undefined) { sets.push("closed_at = ?"); vals.push(updates.closed_at); }
+    if (sets.length === 0) return;
+    vals.push(id);
+    await (this as any).db.execute(`UPDATE ai_streaming_sessions SET ${sets.join(", ")} WHERE id = ?`, vals);
+  }
+}
+
+export interface AiUsageMetricEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  capability: string;
+  input_tokens: number;
+  output_tokens: number;
+  prompt_size: number;
+  latency_gateway_ms: number;
+  latency_reasoning_ms: number;
+  latency_generation_ms: number;
+  latency_trust_ms: number;
+  latency_total_ms: number;
+  recorded_at: string;
+}
+
+export class AiUsageMetricRepository extends RelationalRepository<AiUsageMetricEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_usage_metrics", [
+      "id", "request_id", "capability", "input_tokens", "output_tokens", "prompt_size",
+      "latency_gateway_ms", "latency_reasoning_ms", "latency_generation_ms",
+      "latency_trust_ms", "latency_total_ms", "recorded_at"
+    ], "AiUsageMetric");
+  }
+}
+
+export interface AiPromptMetricEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  template_name: string;
+  prompt_length: number;
+  composition_time_ms: number;
+  context_window_pct: number;
+  recorded_at: string;
+}
+
+export class AiPromptMetricRepository extends RelationalRepository<AiPromptMetricEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_prompt_metrics", [
+      "id", "request_id", "template_name", "prompt_length", "composition_time_ms",
+      "context_window_pct", "recorded_at"
+    ], "AiPromptMetric");
+  }
+}
+
+export interface AiAnalyticsEventEntity extends Identifiable<string> {
+  id: string;
+  event_type: string;
+  request_id: string | null;
+  actor_id: string | null;
+  capability: string | null;
+  metadata_json: string;
+  occurred_at: string;
+}
+
+export class AiAnalyticsEventRepository extends RelationalRepository<AiAnalyticsEventEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_analytics_events", [
+      "id", "event_type", "request_id", "actor_id", "capability", "metadata_json", "occurred_at"
+    ], "AiAnalyticsEvent");
+  }
+}
+
+export interface AiAuditRecordEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  actor_id: string;
+  actor_role: string;
+  capability: string;
+  model_used: string | null;
+  evidence_attached: number;
+  trust_package_id: string | null;
+  response_status: string;
+  policy_checks_passed: number;
+  immutable_hash: string;
+  occurred_at: string;
+}
+
+export class AiAuditRecordRepository extends RelationalRepository<AiAuditRecordEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_audit_records", [
+      "id", "request_id", "actor_id", "actor_role", "capability", "model_used",
+      "evidence_attached", "trust_package_id", "response_status",
+      "policy_checks_passed", "immutable_hash", "occurred_at"
+    ], "AiAuditRecord");
+  }
+}
+
+export interface AiPlaybackRecordEntity extends Identifiable<string> {
+  id: string;
+  request_id: string;
+  user_request: string;
+  reasoning_snapshot: string;
+  generation_snapshot: string;
+  trust_snapshot: string;
+  delivery_metadata: string;
+  created_at: string;
+}
+
+export class AiPlaybackRecordRepository extends RelationalRepository<AiPlaybackRecordEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "ai_playback_records", [
+      "id", "request_id", "user_request", "reasoning_snapshot",
+      "generation_snapshot", "trust_snapshot", "delivery_metadata", "created_at"
+    ], "AiPlaybackRecord");
+  }
+
+  async findByRequestId(requestId: string): Promise<AiPlaybackRecordEntity | null> {
+    const rows = await this.findAll();
+    return rows.find((r) => r.request_id === requestId) ?? null;
+  }
+}

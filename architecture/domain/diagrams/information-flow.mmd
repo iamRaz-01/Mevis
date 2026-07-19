@@ -1,0 +1,14 @@
+flowchart LR
+    %% Information ingress egress path
+    sensors[IoT Turnstile/Camera] -->|Raw Observables| inc[Incident Management]
+    vol_app[Volunteer App] -->|Report Incident| inc
+    
+    inc -->|Incident State| ctx[Context Intelligence]
+    vol_db[Volunteer DB] -->|Rosters & Availability| ctx
+    
+    ctx -->|Structured Snapshot| dec[Decision Intelligence]
+    kb[SOP Knowledge Base] -->|Evidence RAG search| dec
+    
+    dec -->|Compliance & Risk| rec[Recommendation Engine]
+    rec -->|Task Dispatches| notif[Notification]
+    notif -->|SMS/Push Alerts| volunteers[Active Volunteers]

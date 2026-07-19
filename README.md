@@ -39,6 +39,8 @@ The repository is structured as follows:
 │   ├── simulations/    # Simulation metadata scenario configurations
 │   ├── validation/     # Semantic validation scripts (verify_semantics.py)
 │   └── diagrams/       # Lifecycle Mermaid statecharts
+├── architecture/       # Canonical logical domain partitioning & governance
+│   └── domain/         # Bounded contexts, RACI maps, communication, and ACLs
 ├── decision-intelligence/ # Canonical reasoning pipeline, risk models, and decision contracts
 │   ├── examples/       # Traced scenario examples (medical, crowd surge, etc.)
 │   ├── simulations/    # Scenario simulation YAML configs (RAG test cases)

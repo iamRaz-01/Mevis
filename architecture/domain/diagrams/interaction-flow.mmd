@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant VolApp as Volunteer Mobile App
+    participant IncMgmt as Incident Management Context
+    participant CtxIntel as Context Intelligence Context
+    participant DecIntel as Decision Intelligence Context
+    participant RecEng as Recommendation Engine Context
+    participant Notif as Notification Context
+
+    VolApp->>IncMgmt: Ingest Observation Report (Collapsed Spectator)
+    IncMgmt->>CtxIntel: Publish State Change Event (evt_incident_detected)
+    CtxIntel->>DecIntel: Dispatch Context Snapshot Command
+    DecIntel->>RecEng: Push Validated Risk/Decision
+    RecEng->>Notif: Dispatch Alert Command (evt_recommendation_released)
+    Notif->>VolApp: Push notifications to Supervisor/Steward

@@ -1,0 +1,23 @@
+# MEVIS Anti-Corruption Layer (ACL) Specification
+# Translates Knowledge Management RAG search indexes to Decision Intelligence reasoning vectors.
+
+acl_mapping:
+  id: acl_knowledge_decision
+  source_context: 'Knowledge Management'
+  target_context: 'Decision Intelligence'
+  transformation_type: EmbeddingsTranslation
+
+  mappings:
+    - source_field: 'evidence.content'
+      target_field: 'grounding_text'
+      type: string
+    - source_field: 'evidence.source_type'
+      target_field: 'evidence_source'
+      type: string
+    - source_field: 'sop.version'
+      target_field: 'ruleset_version'
+      type: string
+
+  failure_behavior:
+    action: 'Fallback to default low-confidence manual review recommendation.'
+    recovery: 'Relaunch vector search retry.'

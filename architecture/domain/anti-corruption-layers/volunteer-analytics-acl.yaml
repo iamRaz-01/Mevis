@@ -1,0 +1,25 @@
+# MEVIS Anti-Corruption Layer (ACL) Specification
+# Translates Volunteer Management internal models to Analytics aggregate read models.
+
+acl_mapping:
+  id: acl_volunteer_analytics
+  source_context: 'Volunteer Management'
+  target_context: 'Analytics'
+  transformation_type: Aggregation
+
+  mappings:
+    - source_field: 'volunteer.id'
+      target_field: 'volunteer_id'
+      type: string
+    - source_field: 'volunteer.shift_history'
+      target_field: 'total_shifts_worked'
+      transform: 'length(volunteer.shift_history)'
+      type: integer
+    - source_field: 'volunteer.task_completion_rates'
+      target_field: 'average_completion_percentage'
+      transform: 'mean(volunteer.task_completion_rates)'
+      type: float
+
+  failure_behavior:
+    action: 'Return empty analytics dataset, log transformation exception warning.'
+    recovery: 'Retry query with cached last-known profile state.'

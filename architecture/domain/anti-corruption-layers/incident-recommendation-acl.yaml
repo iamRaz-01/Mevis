@@ -1,0 +1,24 @@
+# MEVIS Anti-Corruption Layer (ACL) Specification
+# Translates Incident Management internal models to Recommendation Engine target context.
+
+acl_mapping:
+  id: acl_incident_recommendation
+  source_context: 'Incident Management'
+  target_context: 'Recommendation Engine'
+  transformation_type: ModelTranslation
+
+  mappings:
+    - source_field: 'incident.id'
+      target_field: 'incident_id'
+      type: string
+    - source_field: 'incident.classification'
+      target_field: 'incident_type'
+      type: string
+    - source_field: 'incident.severity'
+      target_field: 'incident_priority'
+      type: string
+      transform: 'map(LOW->LOW, MEDIUM->NORMAL, HIGH->HIGH, CRITICAL->CRITICAL)'
+
+  failure_behavior:
+    action: 'Fail-closed. Stop recommendation synthesis, notify Coordinator.'
+    recovery: 'Retry with default LOW priority profile fallback.'

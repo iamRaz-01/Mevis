@@ -1,0 +1,13 @@
+flowchart TD
+    %% Mappings of upstream/downstream and integration shapes
+    vol[Volunteer Management] -->|Customer-Supplier| ctx[Context Intelligence]
+    inc[Incident Management] -->|Customer-Supplier| ctx
+    
+    ctx -->|Published Language| dec[Decision Intelligence]
+    knw[Knowledge Management] -->|Shared Kernel| dec
+    
+    dec -->|Customer-Supplier| rec[Recommendation Engine]
+    rec -->|Customer-Supplier| notif[Notification]
+    
+    vol -->|Anti-Corruption Layer| analytics[Analytics]
+    inc -->|Anti-Corruption Layer| analytics

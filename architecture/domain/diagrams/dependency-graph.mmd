@@ -1,0 +1,20 @@
+graph TD
+    %% Directional acyclic relationships
+    dec[Decision Intelligence] --> ctx[Context Intelligence]
+    dec --> knw[Knowledge Management]
+    
+    rec[Recommendation Engine] --> dec
+    rec --> adm[Administration]
+    
+    ctx --> vol[Volunteer Management]
+    ctx --> inc[Incident Management]
+    
+    notif[Notification] --> rec
+    
+    analytics[Analytics] -.-> vol
+    analytics -.-> inc
+    
+    %% Shared Kernel references
+    vol --> kernel[Shared Kernel: Venue/Identity/Time]
+    inc --> kernel
+    ctx --> kernel

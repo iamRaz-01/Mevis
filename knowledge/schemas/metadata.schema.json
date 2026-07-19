@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Knowledge Metadata Schema",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "asset_id": { "type": "string" },
+        "title": { "type": "string" },
+        "domain": { "type": "string" },
+        "version": { "type": "string" },
+        "owner_id": { "type": "string" },
+        "trust_level": { "type": "number" }
+      },
+      "required": ["asset_id", "title", "domain", "version", "owner_id"]
+    }
+  },
+  "required": ["metadata"]
+}

@@ -1,0 +1,22 @@
+# MEVIS Knowledge Asset Example
+# Represents stadium accessibility guidelines.
+
+metadata:
+  asset_id: 'kn_venue_guideline_05'
+  title: 'Accessibility Seat Routing Guidelines'
+  domain: 'Venue'
+  version: '1.0.0'
+  owner_id: 'usr_venue_manager'
+  trust_level: 0.88
+
+lifecycle:
+  asset_id: 'kn_venue_guideline_05'
+  lifecycle_state: 'Published'
+  last_reviewed_at: '2026-07-10T11:00:00Z'
+  next_review_due: '2027-07-10T11:00:00Z'
+
+content:
+  summary: 'Assisting visitors with limited accessibility through low gradient ramps.'
+  steps:
+    - 'Select routes prioritizing accessible lift shafts.'
+    - 'Coordinate steward support at Gate exits.'

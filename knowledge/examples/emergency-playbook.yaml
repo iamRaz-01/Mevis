@@ -1,0 +1,22 @@
+# MEVIS Knowledge Asset Example
+# Represents an emergency playbook for severe weather evacuations.
+
+metadata:
+  asset_id: 'kn_emergency_playbook_02'
+  title: 'Lightning Hazard Evacuation Playbook'
+  domain: 'Emergency'
+  version: '2.0.0'
+  owner_id: 'usr_safety_coordinator'
+  trust_level: 0.98
+
+lifecycle:
+  asset_id: 'kn_emergency_playbook_02'
+  lifecycle_state: 'Published'
+  last_reviewed_at: '2026-05-15T09:00:00Z'
+  next_review_due: '2027-05-15T09:00:00Z'
+
+content:
+  summary: 'Emergency procedures routing spectators to indoor corridors.'
+  steps:
+    - 'Monitor lightning strikes within 5km radius.'
+    - 'Open all emergency gate doors.'

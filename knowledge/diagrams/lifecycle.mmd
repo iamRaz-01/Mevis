@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> Draft : Create document
+    Draft --> Review : Submit check
+    Review --> Approved : Governance signoff
+    Approved --> Published : Released to engine
+    
+    Published --> Deprecated : Superceded by update
+    Deprecated --> Archived : Preservation
+    Archived --> [*]

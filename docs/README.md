@@ -47,6 +47,7 @@ The MEVIS documentation is organized into logical functional folders to make it 
 - **[Context Validation & Quality Framework](../context-validation/validation-rules.md)**: Details context validation pipeline rules, completeness metrics, freshness thresholds, consistency invariants, contradiction detections, and validation outcomes.
 - **[Operational Models](../operational-models/venue.md)**: Details operational lifecycles, capabilities, constraints, metrics, and interaction matrices for Venue, Zone, Gate, Volunteer, Incident, Resource, Crowd, and Weather.
 - **[Context Integration Contracts](../context-api/query-contracts.md)**: Details logical interaction contracts (Query, Update, Subscription, Snapshot, and Event) enabling components to interact with the Context Intelligence layer.
+- **[Knowledge Architecture](../knowledge/architecture.md)**: Details logical knowledge models, taxonomies, hierarchies, ownership configurations, governance compliance checklists, lifecycle stages, and relationship maps.
 
 - **[MEVIS Engineering Constitution (MEC)](./engineering/MEVIS%20Product%20Constitution.md)**: Chapter 1 defining the core constitutional authority and the Open Decisions Register (`OD-001` through `OD-008`).
 - **[MEVIS Architecture Specification](./architecture/MEVIS%20Architecture%20Specification%20v1.0.md)**: Details logical bounded contexts, system context maps, database schema outlines, and the Incident State Machine.

@@ -1,0 +1,22 @@
+# MEVIS Knowledge Asset Example
+# Represents standard training materials for stewards.
+
+metadata:
+  asset_id: 'kn_volunteer_handbook_03'
+  title: 'Volunteer Steward Handbook'
+  domain: 'Volunteer'
+  version: '1.0.0'
+  owner_id: 'usr_volunteer_manager'
+  trust_level: 0.85
+
+lifecycle:
+  asset_id: 'kn_volunteer_handbook_03'
+  lifecycle_state: 'Published'
+  last_reviewed_at: '2026-07-01T10:00:00Z'
+  next_review_due: '2027-07-01T10:00:00Z'
+
+content:
+  summary: 'Standard guidelines defining steward responsibilities and shift rest break thresholds.'
+  steps:
+    - 'Register check-in coordinates upon shift commencement.'
+    - 'Request rest break intervals if fatigue metrics exceed bounds.'

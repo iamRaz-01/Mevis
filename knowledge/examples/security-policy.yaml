@@ -1,0 +1,22 @@
+# MEVIS Knowledge Asset Example
+# Represents security check operational rules.
+
+metadata:
+  asset_id: 'kn_security_policy_04'
+  title: 'Baggage Ingress Screening Policy'
+  domain: 'Security'
+  version: '1.1.0'
+  owner_id: 'usr_security_director'
+  trust_level: 0.90
+
+lifecycle:
+  asset_id: 'kn_security_policy_04'
+  lifecycle_state: 'Published'
+  last_reviewed_at: '2026-06-15T09:30:00Z'
+  next_review_due: '2027-06-15T09:30:00Z'
+
+content:
+  summary: 'Policies standardizing building entry exclusions and gate search rules.'
+  steps:
+    - 'Lock gate entries immediately on lockdown mode command.'
+    - 'Audit bag dimensions against security limit configurations.'

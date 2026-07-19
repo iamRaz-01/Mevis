@@ -1,0 +1,22 @@
+# MEVIS Knowledge Asset Example
+# Represents a standard operating procedure for cardiac emergencies.
+
+metadata:
+  asset_id: 'kn_medical_sop_01'
+  title: 'Cardiac Emergency Response SOP'
+  domain: 'Medical'
+  version: '1.2.0'
+  owner_id: 'usr_medical_director'
+  trust_level: 0.95
+
+lifecycle:
+  asset_id: 'kn_medical_sop_01'
+  lifecycle_state: 'Published'
+  last_reviewed_at: '2026-06-01T08:00:00Z'
+  next_review_due: '2027-06-01T08:00:00Z'
+
+content:
+  summary: 'Deploying medical stewards and automated external defibrillators (AEDs).'
+  steps:
+    - 'Dispatch nearest responder certified in CPR.'
+    - 'Retrieve AED from Zone medical cabinet.'

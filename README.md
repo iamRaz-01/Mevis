@@ -87,6 +87,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock volunteer, incident, and crowd evolution behaviors
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Lifecycles, interaction matrices, and capability Mermaid charts
+├── knowledge/          # Canonical knowledge architecture repository and metadata
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock medical SOP, weather playbooks, and volunteer guidelines
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Architecture, taxonomy, lifecycles, and relationship maps
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

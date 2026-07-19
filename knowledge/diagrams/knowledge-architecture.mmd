@@ -1,0 +1,10 @@
+flowchart TD
+    subgraph Knowledge Subsystem
+        repo[Knowledge Repository] --> metadata[Metadata Index]
+        repo --> lifecycle[Lifecycle State Engine]
+    end
+    
+    subgraph Downstream Reasoning
+        metadata -->|Provides Context SOPs| ci[Context Intelligence]
+        lifecycle -->|Verifies active rules| di[Decision Intelligence]
+    end

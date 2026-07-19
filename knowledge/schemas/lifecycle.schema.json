@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Knowledge Lifecycle Schema",
+  "type": "object",
+  "properties": {
+    "asset_id": { "type": "string" },
+    "lifecycle_state": { "type": "string" },
+    "last_reviewed_at": { "type": "string" },
+    "next_review_due": { "type": "string" }
+  },
+  "required": ["asset_id", "lifecycle_state", "last_reviewed_at", "next_review_due"]
+}

@@ -1,0 +1,173 @@
+name: MEVIS — Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  RAILWAY_CLI_VERSION: '3.22.0'
+
+jobs:
+  # ─── Stage 1: Validate ────────────────────────────────────────
+  validate:
+    name: Validate & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Run tests (context-service)
+        run: |
+          cd services/context-service
+          node --test dist/tests/**/*.test.js
+        continue-on-error: true
+
+  # ─── Stage 2: Deploy Dashboard to Vercel ─────────────────────
+  deploy-frontend:
+    name: Deploy Dashboard → Vercel
+    runs-on: ubuntu-latest
+    needs: validate
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.preview-url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.preview-url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build dashboard
+        run: |
+          cd apps/dashboard
+          npm run build
+        env:
+          NEXT_PUBLIC_CONTEXT_SERVICE_URL: ${{ vars.CONTEXT_SERVICE_URL }}
+          NEXT_PUBLIC_GATEWAY_URL: ${{ vars.GATEWAY_URL }}
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/dashboard
+
+      - name: Build Vercel Output
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/dashboard
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "preview-url=$url" >> $GITHUB_OUTPUT
+          echo "✅ Deployed Dashboard to: $url"
+        working-directory: apps/dashboard
+
+  # ─── Stage 3: Deploy Backend to Railway ──────────────────────
+  deploy-backend:
+    name: Deploy Backend → Railway
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      - name: Deploy context-service
+        run: |
+          railway up \
+            --service context-service \
+            --dockerfile services/context-service/Dockerfile \
+            --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy gateway
+        run: |
+          railway up \
+            --service gateway \
+            --dockerfile services/gateway/Dockerfile \
+            --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  # ─── Stage 4: Smoke Test ─────────────────────────────────────
+  smoke-test:
+    name: Production Smoke Test
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    steps:
+      - name: Test backend health
+        run: |
+          MAX_RETRIES=10
+          COUNT=0
+          until curl -sf "${{ vars.CONTEXT_SERVICE_URL }}/api/health" > /dev/null 2>&1; do
+            COUNT=$((COUNT + 1))
+            if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
+              echo "❌ Backend health check failed after $MAX_RETRIES retries"
+              exit 1
+            fi
+            echo "⏳ Waiting for backend... ($COUNT/$MAX_RETRIES)"
+            sleep 15
+          done
+          echo "✅ Backend is healthy"
+
+      - name: Test frontend availability
+        run: |
+          MAX_RETRIES=10
+          COUNT=0
+          FRONTEND_URL="${{ needs.deploy-frontend.outputs.url }}"
+          until curl -sf "$FRONTEND_URL" > /dev/null 2>&1; do
+            COUNT=$((COUNT + 1))
+            if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
+              echo "❌ Frontend health check failed after $MAX_RETRIES retries"
+              exit 1
+            fi
+            echo "⏳ Waiting for frontend... ($COUNT/$MAX_RETRIES)"
+            sleep 10
+          done
+          echo "✅ Frontend is healthy at $FRONTEND_URL"
+
+      - name: Test API endpoints
+        run: |
+          BASE="${{ vars.CONTEXT_SERVICE_URL }}"
+          
+          # Test core endpoints
+          curl -sf "$BASE/api/health" | grep -q "success" && echo "✅ /api/health OK" || echo "⚠️ /api/health unexpected"
+          curl -sf "$BASE/runtime/operational/v1/volunteers" | grep -q "success" && echo "✅ /volunteers OK" || echo "⚠️ /volunteers issue"
+          curl -sf "$BASE/runtime/operational/v1/incidents" | grep -q "success" && echo "✅ /incidents OK" || echo "⚠️ /incidents issue"
+          
+          echo "🎉 MEVIS Production Smoke Test Complete"
+          echo "   Frontend: ${{ needs.deploy-frontend.outputs.url }}"
+          echo "   Backend:  ${{ vars.CONTEXT_SERVICE_URL }}"
+

@@ -18,7 +18,7 @@ export class InMemoryEventBus implements EventBusPort {
 
   async publish(event: PlatformEvent): Promise<void> {
     logger.info(`Publishing event of type: ${event.type}`);
-    const handlers = this.listeners.get(event.type) || [];
+    const handlers = (this.listeners.get(event.type) || []).concat(this.listeners.get("*") || []);
     await Promise.all(
       handlers.map(async handler => {
         try {

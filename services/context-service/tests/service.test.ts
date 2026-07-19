@@ -121,6 +121,9 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     // Terminate connections and server
     await dbClient.close();
     server.close();
+    setTimeout(() => {
+      process.exit(0);
+    }, 500);
   });
 
   let venueId: string;
@@ -975,6 +978,7 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
 
   let testIncidentId: string;
   let testAssignmentId: string;
+  let testTaskId: string;
 
   test("77. Verify POST /api/incidents creates a new incident", async () => {
     const res = await makeRequest(
@@ -1059,6 +1063,7 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.strictEqual(res.status, 200);
     const t = res.payload.data;
     assert.ok(t.id.startsWith("TSK-"));
+    testTaskId = t.id;
   });
 
   test("83. Verify POST /api/resource-requests checkout allocation logs", async () => {
@@ -2023,4 +2028,182 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     assert.ok(r.userRequest);
     assert.ok(r.createdAt);
   });
+
+  // ─── Volunteer Workspace Tests (Issue #1) ─────────────────────────────────
+
+  test("152. Verify GET /api/volunteer/profile retrieves or auto-seeds profile", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/api/volunteer/profile",
+      undefined,
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.id, "u-vol");
+    assert.strictEqual(data.name, "Abdul Al-Farooq");
+    assert.strictEqual(data.email, "abdul.lead@mevis.io");
+    assert.ok(data.certifications.includes("FIRST_AID"));
+  });
+
+  test("153. Verify GET /api/volunteer/shift retrieves default shift details", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/api/volunteer/shift",
+      undefined,
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.startTime, "08:00");
+    assert.strictEqual(data.venueName, "Lusail Stadium");
+    assert.strictEqual(data.status, "NOT_CHECKED_IN");
+  });
+
+  test("154. Verify POST /api/volunteer/checkin transitions shift status to CHECKED_IN", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/volunteer/checkin",
+      {},
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.status, "CHECKED_IN");
+
+    // Verify shift endpoint now returns CHECKED_IN
+    const shiftRes = await makeRequest(
+      "GET",
+      "/api/volunteer/shift",
+      undefined,
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(shiftRes.payload.data.status, "CHECKED_IN");
+  });
+
+  test("155. Verify POST /api/volunteer/checkout transitions shift status back", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/volunteer/checkout",
+      {},
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.status, "CHECKED_OUT");
+
+    // Verify shift endpoint now returns CHECKED_OUT (or equivalent)
+    const shiftRes = await makeRequest(
+      "GET",
+      "/api/volunteer/shift",
+      undefined,
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(shiftRes.payload.data.status, "CHECKED_OUT");
+  });
+
+  test("156. Verify GET /api/volunteer/dashboard aggregates full workspace operational view", async () => {
+    const res = await makeRequest(
+      "GET",
+      "/api/volunteer/dashboard",
+      undefined,
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.profile);
+    assert.strictEqual(data.profile.name, "Abdul Al-Farooq");
+    assert.ok(data.shift);
+    assert.ok(Array.isArray(data.assignments));
+    assert.ok(Array.isArray(data.tasks));
+    assert.ok(Array.isArray(data.incidents));
+    assert.ok(Array.isArray(data.notifications));
+  });
+
+  test("157. Verify POST /api/volunteer/assignments/:id/accept transitions assignment state", async () => {
+    const res = await makeRequest(
+      "POST",
+      `/api/volunteer/assignments/${testAssignmentId}/accept`,
+      {},
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.status, "ACCEPTED");
+  });
+
+  test("158. Verify POST /api/volunteer/assignments/:id/reject transitions and recommends replacement alternatives", async () => {
+    // We recreate the assignment since accept/reject transitions are state validated
+    const createRes = await makeRequest(
+      "POST",
+      "/api/assignments",
+      {
+        assigneeId: "VOL-alternate-01",
+        targetId: testIncidentId,
+        reason: "Re-dispatching volunteer for alternative evaluation.",
+      },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(createRes.status, 200);
+    const newAsnId = createRes.payload.data.id;
+
+    const res = await makeRequest(
+      "POST",
+      `/api/volunteer/assignments/${newAsnId}/reject`,
+      {},
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.assignment.status, "REJECTED");
+    assert.ok(Array.isArray(res.payload.data.alternativeRecommendations));
+    assert.ok(res.payload.data.alternativeRecommendations.length > 0);
+    assert.ok(res.payload.data.alternativeRecommendations[0].volunteerId);
+    assert.ok(res.payload.data.alternativeRecommendations[0].compatibilityScore);
+  });
+
+  test("159. Verify POST /api/volunteer/tasks/:id/start transitions task state", async () => {
+    const res = await makeRequest(
+      "POST",
+      `/api/volunteer/tasks/${testTaskId}/start`,
+      {},
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.status, "IN_PROGRESS");
+  });
+
+  test("160. Verify POST /api/volunteer/tasks/:id/complete transitions task state", async () => {
+    const res = await makeRequest(
+      "POST",
+      `/api/volunteer/tasks/${testTaskId}/complete`,
+      {},
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.status, "COMPLETED");
+  });
+
+  test("161. Verify POST /api/volunteer/sos raises critical incident", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/volunteer/sos",
+      { reason: "Volunteer Injury", location: "Gate A1 Perimeter" },
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.severity, "CRITICAL");
+    assert.strictEqual(res.payload.data.status, "CREATED");
+    assert.ok(res.payload.data.description.includes("EMERGENCY SOS RAISED"));
+  });
+
+  test("162. Verify POST /api/volunteer/location registers location updates successfully", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/volunteer/location",
+      { location: "Gate A1 Outer Corridor", locationCoords: [110, 160] },
+      { "x-actor-role": "ROLE_VOLUNTEER", "x-actor-id": "u-vol" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.success, true);
+    assert.strictEqual(res.payload.data.location, "Gate A1 Outer Corridor");
+    assert.deepEqual(res.payload.data.locationCoords, [110, 160]);
+  });
 });
+

@@ -289,4 +289,197 @@ export class BusinessWorkflowOrchestrator {
 
     return request;
   }
+
+  async acceptAssignment(id: string): Promise<Assignment> {
+    const row = await this.assignmentRepo.findById(id);
+    if (!row) throw new Error(`Assignment "${id}" not found.`);
+
+    this.assignmentEngine.validateTransition(row.status, "ACCEPTED");
+
+    const timestamp = new Date().toISOString();
+    const updated: Assignment = {
+      id,
+      assigneeId: row.assignee_id,
+      targetId: row.target_id,
+      reason: row.reason,
+      status: "ACCEPTED",
+      createdAt: row.created_at,
+      updatedAt: timestamp,
+    };
+
+    await this.assignmentRepo.save({
+      id: updated.id,
+      assignee_id: updated.assigneeId,
+      target_id: updated.targetId,
+      reason: updated.reason,
+      status: updated.status,
+      created_at: updated.createdAt,
+      updated_at: updated.updatedAt,
+    });
+
+    await globalEventBus.publish({
+      type: "AssignmentAccepted",
+      timestamp,
+      payload: { assignmentId: id, assigneeId: row.assignee_id, targetId: row.target_id },
+    });
+
+    return updated;
+  }
+
+  async rejectAssignment(id: string): Promise<Assignment> {
+    const row = await this.assignmentRepo.findById(id);
+    if (!row) throw new Error(`Assignment "${id}" not found.`);
+
+    this.assignmentEngine.validateTransition(row.status, "REJECTED");
+
+    const timestamp = new Date().toISOString();
+    const updated: Assignment = {
+      id,
+      assigneeId: row.assignee_id,
+      targetId: row.target_id,
+      reason: row.reason,
+      status: "REJECTED",
+      createdAt: row.created_at,
+      updatedAt: timestamp,
+    };
+
+    await this.assignmentRepo.save({
+      id: updated.id,
+      assignee_id: updated.assigneeId,
+      target_id: updated.targetId,
+      reason: updated.reason,
+      status: updated.status,
+      created_at: updated.createdAt,
+      updated_at: updated.updatedAt,
+    });
+
+    await globalEventBus.publish({
+      type: "AssignmentRejected",
+      timestamp,
+      payload: { assignmentId: id, assigneeId: row.assignee_id, targetId: row.target_id },
+    });
+
+    return updated;
+  }
+
+  async startTask(id: string): Promise<Task> {
+    const row = await this.taskRepo.findById(id);
+    if (!row) throw new Error(`Task "${id}" not found.`);
+
+    this.taskEngine.validateTransition(row.status, "IN_PROGRESS");
+
+    const timestamp = new Date().toISOString();
+    const updated: Task = {
+      id,
+      title: row.title,
+      description: row.description,
+      status: "IN_PROGRESS",
+      priority: row.priority,
+      createdAt: row.created_at,
+      updatedAt: timestamp,
+    };
+
+    await this.taskRepo.save({
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      status: updated.status,
+      priority: updated.priority,
+      created_at: updated.createdAt,
+      updated_at: updated.updatedAt,
+    });
+
+    await globalEventBus.publish({
+      type: "TaskStarted",
+      timestamp,
+      payload: { taskId: id },
+    });
+
+    return updated;
+  }
+
+  async completeTask(id: string): Promise<Task> {
+    const row = await this.taskRepo.findById(id);
+    if (!row) throw new Error(`Task "${id}" not found.`);
+
+    this.taskEngine.validateTransition(row.status, "COMPLETED");
+
+    const timestamp = new Date().toISOString();
+    const updated: Task = {
+      id,
+      title: row.title,
+      description: row.description,
+      status: "COMPLETED",
+      priority: row.priority,
+      createdAt: row.created_at,
+      updatedAt: timestamp,
+    };
+
+    await this.taskRepo.save({
+      id: updated.id,
+      title: updated.title,
+      description: updated.description,
+      status: updated.status,
+      priority: updated.priority,
+      created_at: updated.createdAt,
+      updated_at: updated.updatedAt,
+    });
+
+    await globalEventBus.publish({
+      type: "TaskCompleted",
+      timestamp,
+      payload: { taskId: id },
+    });
+
+    return updated;
+  }
+
+  async raiseSOS(volunteerId: string, reason: string, location: string): Promise<Incident> {
+    const timestamp = new Date().toISOString();
+    const incidentId = `INC-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    const incident: Incident = {
+      id: incidentId,
+      severity: "CRITICAL",
+      location,
+      status: "CREATED",
+      description: `EMERGENCY SOS RAISED by Volunteer "${volunteerId}". Reason: ${reason}`,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    await this.incidentRepo.save({
+      id: incident.id,
+      severity: incident.severity,
+      location: incident.location,
+      status: incident.status,
+      description: incident.description,
+      created_at: incident.createdAt,
+      updated_at: incident.updatedAt,
+    });
+
+    await this.timelineRepo.save({
+      id: crypto.randomUUID(),
+      incident_id: incidentId,
+      event_type: "SOSRaised",
+      message: `Emergency SOS raised at ${location} for ${reason}`,
+      timestamp,
+    });
+
+    await globalEventBus.publish({
+      type: "SOSRaised",
+      timestamp,
+      payload: { incidentId, volunteerId, reason, location },
+    });
+
+    return incident;
+  }
+
+  async updateLocation(volunteerId: string, location: string, coords: [number, number]): Promise<void> {
+    const timestamp = new Date().toISOString();
+    await globalEventBus.publish({
+      type: "LocationUpdated",
+      timestamp,
+      payload: { volunteerId, location, locationCoords: coords },
+    });
+  }
 }

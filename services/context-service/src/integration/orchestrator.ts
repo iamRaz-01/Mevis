@@ -37,6 +37,14 @@ export class OperationalIntelligenceIntegrationOrchestrator {
       "AttendanceCheckedIn",
       "AttendanceCheckedOut",
       "ResourceRequested",
+      "VolunteerCheckedIn",
+      "VolunteerCheckedOut",
+      "AssignmentAccepted",
+      "AssignmentRejected",
+      "TaskStarted",
+      "TaskCompleted",
+      "SOSRaised",
+      "LocationUpdated",
     ];
 
     for (const type of events) {

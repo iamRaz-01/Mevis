@@ -1,7 +1,7 @@
 export class TaskEngine {
   validateTransition(currentStatus: string, nextStatus: string): void {
     const validMap: Record<string, string[]> = {
-      "CREATED": ["ASSIGNED", "ACCEPTED"],
+      "CREATED": ["ASSIGNED", "ACCEPTED", "IN_PROGRESS"],
       "ASSIGNED": ["ACCEPTED", "IN_PROGRESS"],
       "ACCEPTED": ["IN_PROGRESS", "COMPLETED"],
       "IN_PROGRESS": ["COMPLETED"],

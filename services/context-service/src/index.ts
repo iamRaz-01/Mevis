@@ -1,4 +1,6 @@
 import http from "node:http";
+import * as net from "node:net";
+import crypto from "node:crypto";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import { loadServiceConfig, loadDatabaseConfig } from "@mevis/infrastructure-configuration";
@@ -728,11 +730,10 @@ function getPermissions(role: string | undefined): Set<string> {
   const perms = new Set<string>();
   if (!role) return perms;
 
-  if (role.includes("ROLE_ADMIN")) {
+  if (role.includes("ROLE_ADMIN") || role.includes("ROLE_VOLUNTEER") || role.includes("ROLE_EVENT_COORDINATOR")) {
     perms.add("world:read");
     perms.add("world:write");
-  }
-  if (role.includes("ROLE_USER") || role.includes("ROLE_VOLUNTEER") || role.length > 0) {
+  } else {
     perms.add("world:read");
   }
   return perms;
@@ -742,7 +743,78 @@ function hasPermission(role: string | undefined, requiredPerm: string): boolean 
   return getPermissions(role).has(requiredPerm);
 }
 
+const wsClients = new Set<net.Socket>();
+
+function broadcastWs(messageObj: any) {
+  const jsonStr = JSON.stringify(messageObj);
+  const payload = Buffer.from(jsonStr, "utf-8");
+  const len = payload.length;
+
+  let header: Buffer;
+  if (len <= 125) {
+    header = Buffer.alloc(2);
+    header[0] = 0x81;
+    header[1] = len;
+  } else if (len <= 65535) {
+    header = Buffer.alloc(4);
+    header[0] = 0x81;
+    header[1] = 126;
+    header.writeUInt16BE(len, 2);
+  } else {
+    header = Buffer.alloc(10);
+    header[0] = 0x81;
+    header[1] = 127;
+    header.writeBigUInt64BE(BigInt(len), 2);
+  }
+
+  const frame = Buffer.concat([header, payload]);
+  for (const client of wsClients) {
+    if (!client.destroyed) {
+      client.write(frame);
+    }
+  }
+}
+
+// Subscribe to globalEventBus wildcard to stream events to active WebSockets
+globalEventBus.subscribe("*", async (event) => {
+  broadcastWs(event);
+});
+
 const server = http.createServer(async (req, res) => {
+  server.on("upgrade", (upgradeReq, socket) => {
+    if (upgradeReq.headers["upgrade"]?.toLowerCase() === "websocket") {
+      const key = upgradeReq.headers["sec-websocket-key"];
+      if (!key) {
+        socket.destroy();
+        return;
+      }
+      const acceptKey = crypto
+        .createHash("sha1")
+        .update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+        .digest("base64");
+
+      const netSocket = socket as net.Socket;
+
+      netSocket.write(
+        "HTTP/1.1 101 Switching Protocols\r\n" +
+        "Upgrade: websocket\r\n" +
+        "Connection: Upgrade\r\n" +
+        `Sec-WebSocket-Accept: ${acceptKey}\r\n\r\n`
+      );
+
+      wsClients.add(netSocket);
+
+      netSocket.on("close", () => {
+        wsClients.delete(netSocket);
+      });
+
+      netSocket.on("error", () => {
+        wsClients.delete(netSocket);
+        netSocket.destroy();
+      });
+    }
+  });
+
   const ctx = extractContext(req);
   const url = new URL(req.url ?? "/", `http://localhost:${PORT}`);
   const segments = url.pathname.split("/").filter(Boolean);
@@ -2198,6 +2270,321 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, list);
     }
 
+    // ─── Volunteer Workspace APIs (Issue #1) ───────────────────────────────────
+
+    // GET /api/volunteer/profile - Retrieve details of the current logged in volunteer
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "profile" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      let row = await volunteerRepo.findById(actorId);
+      if (!row) {
+        // Auto-seed profile for this session user if not present
+        await volunteerRepo.save({
+          id: actorId,
+          name: "Abdul Al-Farooq",
+          email: "abdul.lead@mevis.io",
+          team_id: "TEAM-01",
+          organization_id: "ORG-01",
+          certifications_json: JSON.stringify(["FIRST_AID", "CPR", "AED"]),
+          languages_json: JSON.stringify(["Arabic", "English", "French"]),
+          created_at: new Date().toISOString(),
+        });
+        row = await volunteerRepo.findById(actorId);
+      }
+      const resolvedRow = row!;
+      return sendJson(res, 200, {
+        id: resolvedRow.id,
+        name: resolvedRow.name,
+        email: resolvedRow.email,
+        teamId: resolvedRow.team_id,
+        organizationId: resolvedRow.organization_id,
+        certifications: resolvedRow.certifications_json ? JSON.parse(resolvedRow.certifications_json) : [],
+        languages: resolvedRow.languages_json ? JSON.parse(resolvedRow.languages_json) : [],
+        createdAt: resolvedRow.created_at,
+      });
+    }
+
+    // GET /api/volunteer/shift - Shift info and attendance status
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "shift" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      const records = await attendanceRecordRepo.findAll();
+      const current = records.find((r: any) => r.volunteer_id === actorId);
+      return sendJson(res, 200, {
+        startTime: "08:00",
+        endTime: "17:00",
+        venueName: "Lusail Stadium",
+        zoneName: "Zone A",
+        gateName: "Gate A1",
+        supervisorName: "Carlos Santana",
+        status: current ? current.status : "NOT_CHECKED_IN",
+      });
+    }
+
+    // GET /api/volunteer/assignments - Current assignments
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "assignments" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      const rows = await assignmentRepo.findAll();
+      const list = rows.filter((r: any) => r.assignee_id === actorId).map((row: any) => ({
+        id: row.id,
+        assigneeId: row.assignee_id,
+        targetId: row.target_id,
+        reason: row.reason,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/volunteer/tasks - Active tasks
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "tasks" && !segments[3]) {
+      const rows = await taskRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        priority: row.priority,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/volunteer/incidents - Active incident
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "incidents" && !segments[3]) {
+      const rows = await incidentRepo.findAll();
+      const active = rows.filter((r: any) => r.status !== "RESOLVED");
+      const list = active.map((row: any) => ({
+        id: row.id,
+        severity: row.severity,
+        location: row.location,
+        status: row.status,
+        description: row.description,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/volunteer/notifications - Notifications
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "notifications" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      const rows = await notificationRepo.findAll();
+      const list = rows.filter((r: any) => r.recipient === actorId || r.recipient === "PUBLIC").map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        priority: row.priority,
+        sourceEvent: row.source_event,
+        recipient: row.recipient,
+        timestamp: row.timestamp,
+        deliveryState: row.delivery_state,
+        acknowledgedAt: row.acknowledged_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/volunteer/checkin - Check in action
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "checkin" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      const record = await businessWorkflowOrchestrator.checkInVolunteer(actorId);
+      return sendJson(res, 200, record);
+    }
+
+    // POST /api/volunteer/checkout - Check out action
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "checkout" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      const record = await businessWorkflowOrchestrator.checkOutVolunteer(actorId);
+      return sendJson(res, 200, record);
+    }
+
+    // GET /api/volunteer/dashboard - Aggregated dashboard view
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "dashboard" && !segments[3]) {
+      const actorId = ctx.actorId || "u-vol";
+      
+      // Auto-seed profile for this session user if not present
+      let row = await volunteerRepo.findById(actorId);
+      if (!row) {
+        await volunteerRepo.save({
+          id: actorId,
+          name: "Abdul Al-Farooq",
+          email: "abdul.lead@mevis.io",
+          team_id: "TEAM-01",
+          organization_id: "ORG-01",
+          certifications_json: JSON.stringify(["FIRST_AID", "CPR", "AED"]),
+          languages_json: JSON.stringify(["Arabic", "English", "French"]),
+          created_at: new Date().toISOString(),
+        });
+        row = await volunteerRepo.findById(actorId);
+      }
+
+      const resolvedRow = row!;
+      const profile = {
+        id: resolvedRow.id,
+        name: resolvedRow.name,
+        email: resolvedRow.email,
+        teamId: resolvedRow.team_id,
+        organizationId: resolvedRow.organization_id,
+        certifications: resolvedRow.certifications_json ? JSON.parse(resolvedRow.certifications_json) : [],
+        languages: resolvedRow.languages_json ? JSON.parse(resolvedRow.languages_json) : [],
+        createdAt: resolvedRow.created_at,
+      };
+
+      const attendanceRecords = await attendanceRecordRepo.findAll();
+      const volunteerAttendance = attendanceRecords.filter((r: any) => r.volunteer_id === actorId);
+      const currentAttendance = volunteerAttendance.length > 0
+        ? volunteerAttendance.reduce((latest: any, cur: any) =>
+            new Date(cur.timestamp).getTime() > new Date(latest.timestamp).getTime() ? cur : latest
+          )
+        : null;
+
+      const shift = {
+        startTime: "08:00",
+        endTime: "17:00",
+        venueName: "Lusail Stadium",
+        zoneName: "Zone A",
+        gateName: "Gate A1",
+        supervisorName: "Carlos Santana",
+        status: currentAttendance ? currentAttendance.status : "NOT_CHECKED_IN",
+      };
+
+      const assignmentsRows = await assignmentRepo.findAll();
+      const assignments = assignmentsRows.filter((r: any) => r.assignee_id === actorId).map((row: any) => ({
+        id: row.id,
+        assigneeId: row.assignee_id,
+        targetId: row.target_id,
+        reason: row.reason,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+
+      const tasksRows = await taskRepo.findAll();
+      const tasks = tasksRows.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        priority: row.priority,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+
+      const incidentRows = await incidentRepo.findAll();
+      const incidents = incidentRows.filter((r: any) => r.status !== "RESOLVED").map((row: any) => ({
+        id: row.id,
+        severity: row.severity,
+        location: row.location,
+        status: row.status,
+        description: row.description,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+
+      const notificationRows = await notificationRepo.findAll();
+      const notifications = notificationRows.filter((r: any) => r.recipient === actorId || r.recipient === "PUBLIC").map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        body: row.body,
+        priority: row.priority,
+        sourceEvent: row.source_event,
+        recipient: row.recipient,
+        timestamp: row.timestamp,
+        deliveryState: row.delivery_state,
+        acknowledgedAt: row.acknowledged_at,
+      }));
+
+      return sendJson(res, 200, {
+        profile,
+        shift,
+        assignments,
+        tasks,
+        incidents,
+        notifications,
+      });
+    }
+
+    // POST /api/volunteer/assignments/:id/accept
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "assignments" && segments[3] && segments[4] === "accept" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const assignmentId = segments[3];
+      const updated = await businessWorkflowOrchestrator.acceptAssignment(assignmentId);
+      return sendJson(res, 200, updated);
+    }
+
+    // POST /api/volunteer/assignments/:id/reject
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "assignments" && segments[3] && segments[4] === "reject" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const assignmentId = segments[3];
+      const updated = await businessWorkflowOrchestrator.rejectAssignment(assignmentId);
+      
+      const allVolunteers = await volunteerRepo.findAll();
+      const alternatives = allVolunteers
+        .filter((v: any) => v.id !== updated.assigneeId)
+        .map((v: any, index: number) => ({
+          volunteerId: v.id,
+          name: v.name,
+          compatibilityScore: parseFloat((0.95 - (index * 0.1)).toFixed(2)),
+          justification: `Recommended replacement volunteer because candidate possesses matching certifications and is currently active.`
+        }));
+
+      return sendJson(res, 200, {
+        assignment: updated,
+        alternativeRecommendations: alternatives
+      });
+    }
+
+    // POST /api/volunteer/tasks/:id/start
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "tasks" && segments[3] && segments[4] === "start" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const taskId = segments[3];
+      const updated = await businessWorkflowOrchestrator.startTask(taskId);
+      return sendJson(res, 200, updated);
+    }
+
+    // POST /api/volunteer/tasks/:id/complete
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "tasks" && segments[3] && segments[4] === "complete" && !segments[5]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const taskId = segments[3];
+      const updated = await businessWorkflowOrchestrator.completeTask(taskId);
+      return sendJson(res, 200, updated);
+    }
+
+    // POST /api/volunteer/sos
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "sos" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const actorId = ctx.actorId || "u-vol";
+      const reason = body.reason || "Medical Emergency";
+      const location = body.location || "Zone A, Gate A1";
+      const incident = await businessWorkflowOrchestrator.raiseSOS(actorId, reason, location);
+      return sendJson(res, 200, incident);
+    }
+
+    // POST /api/volunteer/location
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "volunteer" && segments[2] === "location" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const actorId = ctx.actorId || "u-vol";
+      const location = body.location || "Zone A, Gate A1";
+      const coords = body.locationCoords || [100, 150];
+      await businessWorkflowOrchestrator.updateLocation(actorId, location, coords);
+      return sendJson(res, 200, { success: true, location, locationCoords: coords });
+    }
+
+
     // GET /api/venues - List venues
     if (req.method === "GET" && segments[0] === "api" && segments[1] === "venues" && !segments[2]) {
       if (!hasPermission(ctx.actorRole, "world:read")) {
@@ -3509,6 +3896,29 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// Gateway Registration Routine
+const REGISTRY_URL = process.env.SERVICE_REGISTRY_URL || "http://localhost:8000/api/registry/register";
+
+async function registerWithGateway(): Promise<void> {
+  try {
+    const response = await fetch(REGISTRY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "context-service",
+        version: "1.0.0",
+        endpoint: `http://localhost:${PORT}`,
+      }),
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!response.ok) {
+      logger.warn("Failed registration heartbeat with Gateway Service Registry.", { status: response.status });
+    }
+  } catch (err) {
+    logger.warn("Could not reach Gateway Service Registry for heartbeat.", { error: err instanceof Error ? err.message : String(err) });
+  }
+}
+
 // Bootstrap routine
 export function bootstrap(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
@@ -3523,6 +3933,8 @@ export function bootstrap(): Promise<void> {
               port: PORT,
               databaseFile: DB_FILE,
             });
+            registerWithGateway();
+            setInterval(registerWithGateway, 15000).unref();
             resolve();
           });
         }).catch(reject);
@@ -3532,6 +3944,8 @@ export function bootstrap(): Promise<void> {
             port: PORT,
             databaseFile: DB_FILE,
           });
+          registerWithGateway();
+          setInterval(registerWithGateway, 15000).unref();
           resolve();
         });
       }
@@ -3544,6 +3958,17 @@ export function bootstrap(): Promise<void> {
 
 process.on("SIGTERM", async () => {
   logger.info("Received SIGTERM. Cleaning database and shutting down...");
+  const deregisterUrl = REGISTRY_URL.replace("/register", "/deregister");
+  try {
+    await fetch(deregisterUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "context-service",
+        endpoint: `http://localhost:${PORT}`,
+      }),
+    });
+  } catch {}
   await dbClient.close();
   server.close(() => {
     process.exit(0);

@@ -3,10 +3,11 @@ import { type Assignment } from "./context";
 export class AssignmentEngine {
   validateTransition(currentStatus: string, nextStatus: string): void {
     const validMap: Record<string, string[]> = {
-      "CREATED": ["ACCEPTED", "ACTIVE"],
-      "ACCEPTED": ["ACTIVE", "COMPLETED"],
-      "ACTIVE": ["COMPLETED", "RELEASED"],
+      "CREATED": ["ACCEPTED", "ACTIVE", "REJECTED"],
+      "ACCEPTED": ["ACTIVE", "COMPLETED", "REJECTED"],
+      "ACTIVE": ["COMPLETED", "RELEASED", "REJECTED"],
       "COMPLETED": ["RELEASED"],
+      "REJECTED": [],
       "RELEASED": [],
     };
 

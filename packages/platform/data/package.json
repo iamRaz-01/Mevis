@@ -1,0 +1,15 @@
+{
+  "name": "@mevis/platform-data",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Technology-agnostic persistence, transactions, unit-of-work, caching, and event-bus abstractions",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/platform-communication": "*"
+  }
+}

@@ -15,6 +15,7 @@
     { "path": "packages/platform/communication" },
     { "path": "packages/platform/service-registry" },
     { "path": "packages/platform/service-client" },
+    { "path": "packages/platform/data" },
     { "path": "services/context-service" },
     { "path": "services/configuration-service" },
     { "path": "services/storage-service" },

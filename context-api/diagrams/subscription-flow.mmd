@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant C as Downstream Consumer
+    participant API as Context API Contract
+    participant CI as Context Intelligence
+    
+    C ->> API: Subscribe(ChannelID, FilterCriteria)
+    API ->> CI: Initialize Channel listener
+    CI -->> C: Initial Context Snapshot
+    
+    Note over CI: State Mutation event triggers update
+    CI ->> API: Compile new Context payload
+    API ->> C: Dispatched Event (ContextUpdated)

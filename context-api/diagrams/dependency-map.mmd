@@ -1,0 +1,14 @@
+graph TD
+    subgraph Consumers
+        di[Decision Intelligence]
+        sim[Simulation Engine]
+        coord[Coordinator Dashboard]
+    end
+    
+    subgraph Context Boundary
+        di -->|Loose Coupling contract| api[Context API Contract Layer]
+        sim -->|Loose Coupling contract| api
+        coord -->|Loose Coupling contract| api
+        
+        api -->|Calls| ci[Context Intelligence core]
+    end

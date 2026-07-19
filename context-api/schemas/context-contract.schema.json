@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Context API Contract Schema",
+  "type": "object",
+  "properties": {
+    "api_contracts": {
+      "type": "object",
+      "properties": {
+        "queries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "required_params": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "required": ["name", "required_params"]
+          }
+        },
+        "updates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "required_params": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "required": ["name", "required_params"]
+          }
+        }
+      },
+      "required": ["queries", "updates"]
+    }
+  },
+  "required": ["api_contracts"]
+}

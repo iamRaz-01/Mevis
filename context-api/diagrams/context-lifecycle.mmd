@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> Requested : Client submits Query Contract
+    Requested --> Assembled : Context Builder compiles data
+    Assembled --> Validated : Audited by Quality validation gates
+    Validated --> Dispatched : Payload delivered to Client
+    
+    Dispatched --> [*]

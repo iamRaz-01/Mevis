@@ -1,0 +1,9 @@
+# MEVIS Canonical API Configuration Contract Map
+
+api_contracts:
+  queries:
+    - name: 'retrieve_incident_context'
+      required_params: ['requester_id', 'target_id']
+  updates:
+    - name: 'submit_manual_annotation'
+      required_params: ['context_id', 'modifier_id', 'field_annotations']

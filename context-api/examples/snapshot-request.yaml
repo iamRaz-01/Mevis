@@ -1,0 +1,10 @@
+# MEVIS API Contract Example
+# Represents a logical query requesting a complete context snapshot.
+
+snapshot_request:
+  requester_id: 'req_simulation_engine_03'
+  snapshot_scope: 'MedicalDispatch'
+  version_checkpoint: 'ver_snapshot_1721380900'
+  target_ids:
+    - 'inc_medical_001'
+    - 'vol_steward_104'

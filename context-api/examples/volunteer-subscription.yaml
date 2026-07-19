@@ -1,0 +1,12 @@
+# MEVIS API Contract Example
+# Represents a logical volunteer status update subscription request.
+
+volunteer_subscription:
+  requester_id: 'req_coordinator_console_4'
+  subscription_id: 'sub_vol_tracking_104'
+  scope_filter:
+    zone_id: 'zon_north_concourse'
+    min_fatigue: 0.70
+  update_trigger:
+    on_state_change: true
+    interval_seconds: 15

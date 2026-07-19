@@ -1,0 +1,10 @@
+flowchart TD
+    req[Consumer Request] --> parse[Normalizer Stage]
+    parse --> route{Scope Check}
+    
+    route -- "Incident" --> build1[Incident Context Builder]
+    route -- "Volunteer" --> build2[Volunteer Context Builder]
+    
+    build1 --> audit[Validation Gate]
+    build2 --> audit
+    audit --> send[Dispatched output]

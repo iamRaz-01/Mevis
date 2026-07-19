@@ -1,0 +1,5 @@
+flowchart LR
+    consumer[Downstream Consumer] -->|Logical Query/Sub| api[Context API Contract]
+    api -->|Requests| cc[Context Intelligence]
+    cc -->|Builds & Audits| val[Validated Context]
+    val -->|Delivered payload| consumer

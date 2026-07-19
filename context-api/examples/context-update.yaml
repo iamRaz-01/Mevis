@@ -1,0 +1,9 @@
+# MEVIS API Contract Example
+# Represents a logical manual context override annotation request.
+
+context_update:
+  context_id: 'ctx_incident_dispatch_204'
+  modifier_id: 'usr_supervisor_02'
+  field_annotations:
+    override_reason: 'CCTV shows gate blockage resolved; GPS signal delay suspected.'
+    force_confidence_value: 0.90

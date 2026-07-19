@@ -1,0 +1,10 @@
+# MEVIS API Contract Example
+# Represents a logical incident query request message.
+
+incident_query:
+  requester_id: 'req_decision_intelligence_01'
+  context_scope: 'Incident'
+  target_id: 'inc_medical_001'
+  filters:
+    max_severity: 'High'
+    include_timeline: true

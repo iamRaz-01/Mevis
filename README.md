@@ -67,6 +67,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock incident, volunteer, and emergency context objects
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Containment hierarchy, composition filters, and lifecycle Mermaid charts
+├── context-api/        # Canonical logical query/update contracts and integration events
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock incident queries, subscriptions, updates, and validation events
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Sequence charts, subscriptions, routing, and dependency Mermaid diagrams
 ├── context-builder/    # Canonical context builder pipelines resolving raw observations
 │   ├── schemas/        # Draft-07 JSON validation schemas
 │   ├── examples/       # Mock medical, weather, and crowd context builder outputs

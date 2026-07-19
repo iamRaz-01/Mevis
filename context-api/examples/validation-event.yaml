@@ -1,0 +1,11 @@
+# MEVIS API Contract Example
+# Represents a logical event emitted on validation failures.
+
+validation_event:
+  event_id: 'evt_validation_failed_904'
+  event_type: 'ContextInvalidated'
+  timestamp: '2026-07-19T14:35:00Z'
+  details:
+    context_id: 'ctx_weather_evacuation_003'
+    reason: 'Weather telemetry age exceeds freshness threshold by 320 seconds.'
+    severity: 'Critical'

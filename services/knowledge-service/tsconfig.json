@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./"
+  },
+  "include": ["src/**/*", "tests/**/*"],
+  "references": [
+    { "path": "../../packages/shared-types" },
+    { "path": "../../packages/platform/contracts" },
+    { "path": "../../packages/platform/communication" },
+    { "path": "../../packages/platform/data" },
+    { "path": "../../packages/platform/service-client" },
+    { "path": "../../packages/infrastructure/configuration" },
+    { "path": "../../packages/infrastructure/storage" },
+    { "path": "../../packages/config" },
+    { "path": "../../packages/logger" },
+    { "path": "../../packages/core" }
+  ]
+}

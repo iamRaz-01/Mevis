@@ -130,3 +130,19 @@ services:
       - ../:/usr/src/app
       - /usr/src/app/node_modules
     command: npm run start --workspace=services/health-service
+
+  knowledge-service:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.base
+    environment:
+      - NODE_ENV=development
+      - PORT=3007
+      - LOG_LEVEL=info
+      - SERVICE_REGISTRY_URL=http://gateway:8000/api/registry/register
+    ports:
+      - "3007:3007"
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start --workspace=services/knowledge-service

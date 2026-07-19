@@ -27,6 +27,7 @@
     { "path": "services/audit-service" },
     { "path": "services/health-service" },
     { "path": "services/gateway" },
+    { "path": "services/knowledge-service" },
     { "path": "apps/dashboard" }
   ]
 }

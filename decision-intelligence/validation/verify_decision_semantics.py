@@ -32,6 +32,20 @@ for s in simulations:
     if data:
         loaded_sims[s] = data
 
+# 1.1 Verify all spec files exist
+expected_specs = [
+    "decision-taxonomy.md", "decision-pipeline.md", "decision-lifecycle.md",
+    "world-state-engine.md", "context-builder.md", "knowledge-retrieval.md",
+    "trust-model.md", "memory-architecture.md", "agent-specifications.md",
+    "evaluation-framework.md", "simulation-framework.md", "ai-governance.md",
+    "reasoning-architecture.md", "decision-governance.md",
+    "explainability-model.md", "failure-modes.md", "human-collaboration.md",
+    "policy-contract.md", "risk-matrix.md"
+]
+for spec in expected_specs:
+    if not os.path.exists(os.path.join(DEC_INT_DIR, spec)):
+        log_error(f"Missing expected cognitive specification file: {spec}")
+
 # 2. Semantic Integrity Verifications
 
 if policies:

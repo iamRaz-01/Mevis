@@ -1,79 +1,21 @@
 # Decision Pipeline Specification
 
-This document defines the 13-stage canonical reasoning pipeline that MEVIS must execute to transform raw inputs into explainable, policy-compliant recommendations.
+This document defines the canonical workflow stages for processing observations.
 
 ---
 
-## The Canonical Pipeline Flow
+## 1. Decision pipeline Stages
 
-```text
-Observation ──> Context Assembly ──> Situation Assessment ──> Evidence Collection ──>
-Hypothesis Gen ──> Reasoning ──> Risk Assessment ──> Policy Validation ──>
-Recommendation Gen ──> Explanation Gen ──> Human Approval ──> Execution ──>
-Outcome Evaluation ──> Learning
-```
-
-### Stage 1: Observation
-
-- **Goal**: Ingest signals (Volunteer reports, sensors, CCTV, weather APIs).
-- **Output**: Structured observation object.
-
-### Stage 2: Context Assembly
-
-- **Goal**: Gather all surrounding world-state information (active shifts, resources, weather).
-- **Output**: Static context model. No reasoning is performed.
-
-### Stage 3: Situation Assessment
-
-- **Goal**: Translate raw context parameters into logical operational states.
-- **Output**: Classification of potential problems or bottlenecks.
-
-### Stage 4: Evidence Collection
-
-- **Goal**: Retrieve relevant procedural facts (SOPs, past incidents) and grade their freshness.
-- **Output**: Grounded evidence lists with reliability weights.
-
-### Stage 5: Hypothesis Generation
-
-- **Goal**: Draft multiple candidate interpretations of the situation.
-- **Output**: Candidate hypothesis options.
-
-### Stage 6: Reasoning
-
-- **Goal**: Evaluate options, filter contradictions, and rank the most probable interpretation.
-- **Output**: Ranked logical interpretation.
-
-### Stage 7: Risk Assessment
-
-- **Goal**: Calculate safety, operational, and resource risks of candidate solutions.
-- **Output**: Quantitative multidimensional risk score.
-
-### Stage 8: Policy Validation
-
-- **Goal**: Validate the actions against active stadium rules and access controls.
-- **Output**: Compliance check results. Non-compliant options are blocked.
-
-### Stage 9: Recommendation Generation
-
-- **Goal**: Finalize candidate action tasks, expected execution timelines, and thresholds.
-- **Output**: Formatted recommendation contract.
-
-### Stage 10: Explanation Generation
-
-- **Goal**: Compile explanations (supporting facts, rejected alternatives, assumptions).
-- **Output**: Justification payload.
-
-### Stage 11: Human Approval
-
-- **Goal**: Escalate to human operator for verification depending on risk level.
-- **Output**: Signed approval validation record.
-
-### Stage 12: Outcome Evaluation
-
-- **Goal**: Monitor execution and gather volunteer feedback.
-- **Output**: Outcome metrics payload.
-
-### Stage 13: Learning
-
-- **Goal**: Feed decision metrics back into long-term memory.
-- **Output**: Updated similarity indexes and calibration scores.
+1.  **Observation**: Ingest signals.
+2.  **Context Assembly**: Hydrate static metrics.
+3.  **World State Engine Update**: Modify active state.
+4.  **Situation Assessment**: Classify risk status.
+5.  **Evidence Collection**: Query SOPs.
+6.  **Reasoning Architecture**: Rank hypotheses.
+7.  **Action Planning**: Plan logical tasks.
+8.  **Recommendation Generation**: Compile outputs.
+9.  **Explanation Generation**: Draft justifications.
+10. **Human Approval**: Lock gates check.
+11. **Execution**: Dispatches.
+12. **Outcome Evaluation**: Log actual results.
+13. **Governance & Learning**: Log to memory.

@@ -1,0 +1,9 @@
+# MEVIS Operational Model Example
+# Represents active physical equipment allocations.
+
+resource_allocation:
+  resource_id: 'res_med_kit_08'
+  category: 'MedicalEquipment'
+  status: 'Assigned'
+  allocated_to: 'vol_steward_108'
+  incident_association: 'inc_medical_001'

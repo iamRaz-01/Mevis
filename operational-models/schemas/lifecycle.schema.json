@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Operational Lifecycle Schema",
+  "type": "object",
+  "properties": {
+    "entity_id": { "type": "string" },
+    "current_state": { "type": "string" },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "trigger": { "type": "string" },
+          "target_state": { "type": "string" }
+        },
+        "required": ["trigger", "target_state"]
+      }
+    }
+  },
+  "required": ["entity_id", "current_state", "transitions"]
+}

@@ -77,6 +77,11 @@ The repository is structured as follows:
 │   ├── examples/       # Mock valid, contradictory, and stale validation reports
 │   ├── validation/     # Semantics validator checking scripts
 │   └── diagrams/       # Pipeline, quality dimensions, and lifecycle Mermaid charts
+├── operational-models/ # Canonical behavioral models, lifecycles, and capabilities
+│   ├── schemas/        # Draft-07 JSON validation schemas
+│   ├── examples/       # Mock volunteer, incident, and crowd evolution behaviors
+│   ├── validation/     # Semantics validator checking scripts
+│   └── diagrams/       # Lifecycles, interaction matrices, and capability Mermaid charts
 ├── .gitignore          # Version control exclusions
 └── README.md           # Repository entrypoint (this file)
 ```

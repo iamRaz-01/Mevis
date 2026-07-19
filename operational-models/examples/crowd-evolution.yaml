@@ -1,0 +1,9 @@
+# MEVIS Operational Model Example
+# Represents crowd density evolution tracking values.
+
+crowd_evolution:
+  zone_id: 'zon_north_concourse'
+  current_density: 0.42
+  state: 'Low'
+  restrictions: []
+  evacuation_path: 'pth_exit_corridor_4'

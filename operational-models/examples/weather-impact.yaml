@@ -1,0 +1,10 @@
+# MEVIS Operational Model Example
+# Represents meteorological impact limits on operations.
+
+weather_impact:
+  condition: 'HeavyRain'
+  visibility_meters: 120
+  temperature_celsius: 38
+  travel_speed_multiplier: 0.80
+  restrictions:
+    - 'outdoor_patrol_duration_limit_30m'

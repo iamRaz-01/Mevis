@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MEVIS Operational Model Actor Schema",
+  "type": "object",
+  "properties": {
+    "actor_id": { "type": "string" },
+    "role": { "type": "string" },
+    "capabilities": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["actor_id", "role", "capabilities"]
+}

@@ -1,0 +1,6 @@
+graph TD
+    subgraph Operational Consumers
+        om[Operational Models] -->|Provides behaviors| ci[Context Intelligence]
+        om -->|Outlines transitions| dec[Decision Intelligence reasoning]
+        om -->|Specifies bounds| sim[Simulator stress tests]
+    end

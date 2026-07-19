@@ -1,0 +1,15 @@
+# MEVIS Operational Model Example
+# Represents active incident transition rules state.
+
+incident_lifecycle:
+  entity_id: 'inc_medical_001'
+  current_state: 'Reported'
+  transitions:
+    - trigger: 'triage_complete'
+      target_state: 'Triaged'
+    - trigger: 'responders_dispatched'
+      target_state: 'Responding'
+    - trigger: 'containment_achieved'
+      target_state: 'Contained'
+    - trigger: 'incident_close'
+      target_state: 'Resolved'

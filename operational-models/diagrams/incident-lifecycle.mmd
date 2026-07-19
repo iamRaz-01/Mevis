@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Reported : initial_observ
+    Reported --> Triaged : classification_confirmed
+    Triaged --> Responding : responders_dispatched
+    Responding --> Contained : threat_stabilized
+    Contained --> Resolved : close_incident
+    
+    Resolved --> [*]

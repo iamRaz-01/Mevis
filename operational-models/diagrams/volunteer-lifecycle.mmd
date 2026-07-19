@@ -1,0 +1,12 @@
+stateDiagram-v2
+    [*] --> Available : checked-in
+    Available --> Assigned : dispatch_command
+    Assigned --> Busy : arrive_at_location
+    Busy --> Available : task_complete
+    
+    Busy --> EmergencySupport : disaster_override
+    Available --> Resting : shift_break_start
+    Resting --> Available : break_complete
+    
+    Available --> Unavailable : signed-off
+    Unavailable --> [*]

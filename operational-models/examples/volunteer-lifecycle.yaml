@@ -1,0 +1,13 @@
+# MEVIS Operational Model Example
+# Represents active volunteer transition rules state.
+
+volunteer_lifecycle:
+  entity_id: 'vol_steward_104'
+  current_state: 'Available'
+  transitions:
+    - trigger: 'dispatch_command'
+      target_state: 'Assigned'
+    - trigger: 'arrive_at_location'
+      target_state: 'Busy'
+    - trigger: 'task_complete'
+      target_state: 'Available'

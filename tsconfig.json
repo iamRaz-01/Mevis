@@ -17,6 +17,7 @@
     { "path": "packages/platform/service-client" },
     { "path": "packages/platform/data" },
     { "path": "packages/platform/edge-runtime" },
+    { "path": "packages/platform/frontend-client" },
     { "path": "services/context-service" },
     { "path": "services/configuration-service" },
     { "path": "services/storage-service" },

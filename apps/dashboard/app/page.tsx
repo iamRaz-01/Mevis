@@ -1,18 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth, useNavigation } from "./providers";
 import { Shell } from "../components/Shell";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { Alert } from "../components/Alert";
 import { Badge } from "../components/Badge";
+import { ErrorBoundary, Empty, Forbidden, Offline } from "../components/Feedback";
 
 export default function Home() {
   const { isAuthenticated, user, login } = useAuth();
   const { currentPath } = useNavigation();
 
-  // Login form state
+  // Network offline state detection
+  const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsOffline(!navigator.onLine);
+      const handleOnline = () => setIsOffline(false);
+      const handleOffline = () => setIsOffline(true);
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
+    }
+    return undefined;
+  }, []);
+
+  // Form states
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -20,11 +39,11 @@ export default function Home() {
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!usernameInput || !passwordInput) {
-      setErrorMsg("Please fill in all credentials.");
+      setErrorMsg("Please enter username and password.");
       return;
     }
 
-    // Standard logins mapping
+    // Standard platform credentials check
     if (usernameInput === "admin" && passwordInput === "password") {
       login("mock-jwt-admin-token", {
         id: "u-admin",
@@ -36,7 +55,7 @@ export default function Home() {
     } else if (usernameInput === "coordinator" && passwordInput === "password") {
       login("mock-jwt-coordinator-token", {
         id: "u-coord",
-        username: "Ops Coordinator",
+        username: "Operations Coordinator",
         email: "coord@mevis.io",
         roles: ["ROLE_EVENT_COORDINATOR"],
       });
@@ -50,7 +69,7 @@ export default function Home() {
       });
       setErrorMsg("");
     } else {
-      setErrorMsg("Invalid username or password. (Use: admin/password, coordinator/password, or volunteer/password)");
+      setErrorMsg("Authentication failed. Invalid username or password.");
     }
   };
 
@@ -61,17 +80,19 @@ export default function Home() {
         style={{
           display: "flex",
           minHeight: "100vh",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "var(--bg-base)",
           padding: "1rem",
         }}
       >
+        {isOffline && <Offline />}
         <Card
-          title="MEVIS Operations Command"
-          subtitle="Identity Verification Gateway"
+          title="MEVIS Gateway Portal"
+          subtitle="Stateless Identity Verification"
           className="glass-panel"
-          style={{ width: "400px", padding: "2rem" }}
+          style={{ width: "400px", padding: "2rem", marginTop: isOffline ? "1rem" : "0" }}
         >
           <form onSubmit={handleLoginSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" }}>
             <div className="form-group">
@@ -102,127 +123,69 @@ export default function Home() {
             )}
 
             <Button type="submit" variant="primary" style={{ marginTop: "0.5rem" }}>
-              Authenticate
+              Verify Identity
             </Button>
           </form>
-
-          <div style={{ marginTop: "1.5rem", fontSize: "0.75rem", color: "var(--text-muted)", textAlign: "center" }}>
-            Secured using stateless JWT verification.
-          </div>
         </Card>
       </div>
     );
   }
 
-  // 2. Authenticated Experience (Inside Layout Shell)
+  // Helper check for role-based page guards
+  const currentItem = [
+    { name: "Overview", path: "/dashboard", roles: undefined },
+    { name: "Incidents", path: "/dashboard/incidents", roles: ["ROLE_ADMIN", "ROLE_EVENT_COORDINATOR"] },
+    { name: "Volunteers", path: "/dashboard/volunteers", roles: ["ROLE_ADMIN", "ROLE_EVENT_COORDINATOR"] },
+    { name: "Context Intelligence", path: "/dashboard/context", roles: ["ROLE_ADMIN"] },
+    { name: "Settings", path: "/dashboard/settings", roles: undefined },
+  ].find((item) => item.path === currentPath);
+
+  const isAuthorized = !currentItem?.roles || currentItem.roles.some((r) => user?.roles.includes(r));
+
+  // 2. Authenticated Experience inside the Shell Layout
   return (
-    <Shell>
-      {/* Dynamic child views mapped by active path routing */}
-      {currentPath === "/dashboard" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <Card title={`Welcome Back, ${user?.username}`} subtitle="Operational Overview Panel">
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <p style={{ color: "var(--text-secondary)" }}>
-                You have authenticated successfully as a member of the MEVIS platform. This dashboard serves as the standardized entry point for volunteer operations, incidents, and cognitive intelligence services.
-              </p>
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                <Badge variant="info">User ID: {user?.id}</Badge>
-                <Badge variant="success">Role: {user?.roles[0]}</Badge>
-                <Badge variant="neutral">Status: Active Session</Badge>
-              </div>
-            </div>
-          </Card>
-          <div className="layout-grid">
-            <Card title="Context Lineage Core" subtitle="System headers" style={{ gridColumn: "span 6" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.875rem" }}>
-                <div><strong>Correlation ID:</strong> <span style={{ color: "var(--color-primary)", fontFamily: "monospace" }}>corr-root-dashboard-session</span></div>
-                <div><strong>Request ID:</strong> <span style={{ color: "var(--color-primary)", fontFamily: "monospace" }}>req-ui-handshake-v1</span></div>
+    <ErrorBoundary>
+      {isOffline && <Offline />}
+      <Shell>
+        {!isAuthorized ? (
+          <Forbidden />
+        ) : currentPath === "/dashboard" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <Card title="MEVIS Operational Platform Shell" subtitle="System Control Core">
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <p style={{ color: "var(--text-secondary)" }}>
+                  This dashboard environment forms the frontend foundation of the MEVIS platform. Features are organized modularly and governed through declarative route registries and role-based policies.
+                </p>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <Badge variant="info">User: {user?.username}</Badge>
+                  <Badge variant="success">Authorization: {user?.roles[0]?.replace("ROLE_", "")}</Badge>
+                  <Badge variant="neutral">Status: Online Session</Badge>
+                </div>
               </div>
             </Card>
-            <Card title="Active Systems" subtitle="Platform metrics" style={{ gridColumn: "span 6" }}>
-              <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-                API Gateway resolved at port 8000. Underlyings are routed via the Communication Runtime.
-              </p>
-            </Card>
-          </div>
-        </div>
-      )}
 
-      {currentPath === "/dashboard/incidents" && (
-        <Card title="Incident Command" subtitle="Active Incidents Queue">
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <Alert type="info" message="Incident Command systems are unmounted. Standard workflow controls will bind here in subsequent milestones." />
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border-light)", textAlign: "left" }}>
-                  <th style={{ padding: "0.75rem" }}>ID</th>
-                  <th style={{ padding: "0.75rem" }}>Severity</th>
-                  <th style={{ padding: "0.75rem" }}>Description</th>
-                  <th style={{ padding: "0.75rem" }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                  <td style={{ padding: "0.75rem" }}>INC-001</td>
-                  <td style={{ padding: "0.75rem" }}><Badge variant="danger">HIGH</Badge></td>
-                  <td style={{ padding: "0.75rem" }}>Crowd threshold alert - East Gate</td>
-                  <td style={{ padding: "0.75rem" }}><Badge variant="warning">ASSESSING</Badge></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      {currentPath === "/dashboard/volunteers" && (
-        <Card title="Volunteer Mobilization" subtitle="Active Personnel Registry">
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <Alert type="info" message="Personnel registry systems are offline. Volunteer management logic is deferred." />
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border-light)", textAlign: "left" }}>
-                  <th style={{ padding: "0.75rem" }}>ID</th>
-                  <th style={{ padding: "0.75rem" }}>Name</th>
-                  <th style={{ padding: "0.75rem" }}>Assignment</th>
-                  <th style={{ padding: "0.75rem" }}>Contact Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                  <td style={{ padding: "0.75rem" }}>VOL-908</td>
-                  <td style={{ padding: "0.75rem" }}>Jane Doe</td>
-                  <td style={{ padding: "0.75rem" }}>Sector 4 Coordination</td>
-                  <td style={{ padding: "0.75rem" }}><Badge variant="success">CONNECTED</Badge></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      {currentPath === "/dashboard/context" && (
-        <Card title="Context Intelligence" subtitle="Grounded Context Explorer">
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <Alert type="warning" message="AI reasoning systems are unmounted. Prompt pipelines and citations will list here." />
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.875rem" }}>
-              <div><strong>Core State:</strong> <span style={{ color: "var(--text-secondary)" }}>Idle</span></div>
-              <div><strong>Lineage:</strong> <span style={{ color: "var(--text-secondary)" }}>None</span></div>
+            <div className="layout-grid">
+              <Card title="Platform Context Tracing" subtitle="API trace lineage headers" style={{ gridColumn: "span 6" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.875rem" }}>
+                  <div><strong>Trace Correlation ID:</strong> <span style={{ color: "var(--color-primary)", fontFamily: "monospace" }}>corr-root-dashboard-session</span></div>
+                  <div><strong>Context Request ID:</strong> <span style={{ color: "var(--color-primary)", fontFamily: "monospace" }}>req-ui-handshake-v1</span></div>
+                </div>
+              </Card>
+              <Card title="Edge Integration Policy" subtitle="Gateway rules" style={{ gridColumn: "span 6" }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+                  API calls target port 8000, processed under CORS origins, rate-limit constraints, and JWT authorization rules.
+                </p>
+              </Card>
             </div>
           </div>
-        </Card>
-      )}
-
-      {currentPath === "/dashboard/settings" && (
-        <Card title="Settings" subtitle="Platform Configurations">
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <Alert type="info" message="Settings modifications are restricted to active administrators." />
-            <div className="form-group">
-              <label className="form-label" htmlFor="env-mode">Environment Mode</label>
-              <input id="env-mode" type="text" className="form-input" value="Development" readOnly />
-            </div>
-          </div>
-        </Card>
-      )}
-    </Shell>
+        ) : (
+          // Generic unmounted feature handler (domain-agnostic empty boundaries)
+          <Empty
+            title={`${currentItem?.name} Module Standby`}
+            message={`The UI features and domain logic for the "${currentItem?.name}" component are unmounted. They will bind here in subsequent intelligence milestone integrations.`}
+          />
+        )}
+      </Shell>
+    </ErrorBoundary>
   );
 }

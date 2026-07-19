@@ -1,0 +1,15 @@
+{
+  "name": "@mevis/platform-frontend-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standardized API Client SDK for frontend applications connecting to the API Gateway",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/platform-communication": "*"
+  }
+}

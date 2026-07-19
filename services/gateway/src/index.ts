@@ -1,9 +1,5 @@
 import http from 'node:http';
-import {
-  createEnvelope,
-  extractContext,
-  contextStorage,
-} from '@mevis/platform-communication';
+import { createEnvelope, extractContext, contextStorage } from '@mevis/platform-communication';
 
 const PORT = parseInt(process.env['PORT'] || '8000', 10);
 

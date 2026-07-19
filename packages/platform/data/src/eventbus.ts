@@ -1,4 +1,4 @@
-import { getRequestContext } from "@mevis/platform-communication";
+import { getRequestContext } from '@mevis/platform-communication';
 
 export interface PlatformEvent<T = unknown> {
   readonly eventId: string;
@@ -17,12 +17,12 @@ export interface EventBus {
   publish<T = unknown>(
     eventType: string,
     payload: T,
-    metadata?: Partial<Omit<PlatformEvent<T>, "eventId" | "eventType" | "occurredAt" | "correlationId" | "payload">>
+    metadata?: Partial<
+      Omit<PlatformEvent<T>, 'eventId' | 'eventType' | 'occurredAt' | 'correlationId' | 'payload'>
+    >,
   ): Promise<void>;
   subscribe<T = unknown>(eventType: string, handler: EventHandler<T>): void;
-  registerDlqHandler(
-    handler: (event: PlatformEvent, error: Error) => Promise<void> | void,
-  ): void;
+  registerDlqHandler(handler: (event: PlatformEvent, error: Error) => Promise<void> | void): void;
 }
 
 export class LocalEventBusAdapter implements EventBus {
@@ -33,16 +33,18 @@ export class LocalEventBusAdapter implements EventBus {
   publish<T = unknown>(
     eventType: string,
     payload: T,
-    metadata?: Partial<Omit<PlatformEvent<T>, "eventId" | "eventType" | "occurredAt" | "correlationId" | "payload">>
+    metadata?: Partial<
+      Omit<PlatformEvent<T>, 'eventId' | 'eventType' | 'occurredAt' | 'correlationId' | 'payload'>
+    >,
   ): Promise<void> {
     const ctx = getRequestContext();
     const event: PlatformEvent<T> = {
       eventId: crypto.randomUUID(),
       eventType,
-      aggregateId: metadata?.aggregateId || "unknown",
+      aggregateId: metadata?.aggregateId || 'unknown',
       occurredAt: new Date().toISOString(),
       version: metadata?.version || 1,
-      sourceService: metadata?.sourceService || "unknown",
+      sourceService: metadata?.sourceService || 'unknown',
       correlationId: ctx.correlationId || crypto.randomUUID(),
       payload,
     };
@@ -52,7 +54,7 @@ export class LocalEventBusAdapter implements EventBus {
       // Resolve matches (including simple wildcard '*' support)
       const matchedHandlers: EventHandler<unknown>[] = [];
       for (const [pattern, list] of this.handlers.entries()) {
-        if (pattern === eventType || pattern === "*") {
+        if (pattern === eventType || pattern === '*') {
           matchedHandlers.push(...list);
         }
       }

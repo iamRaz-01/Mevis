@@ -512,3 +512,31 @@ export class AttendanceRecordRepository extends RelationalRepository<AttendanceR
     await this.db.execute(sql, [id]);
   }
 }
+
+export interface IntegrationEventLogEntity extends Identifiable<string> {
+  id: string;
+  event_type: string;
+  payload_json: string;
+  status: string;
+  timestamp: string;
+  error_message: string | null;
+}
+
+export class IntegrationEventLogRepository extends RelationalRepository<IntegrationEventLogEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "integration_event_logs", ["id", "event_type", "payload_json", "status", "timestamp", "error_message"], "IntegrationEventLog");
+  }
+}
+
+export interface IntegrationRetryQueueEntity extends Identifiable<string> {
+  id: string;
+  event_id: string;
+  retry_count: number;
+  next_attempt: string;
+}
+
+export class IntegrationRetryQueueRepository extends RelationalRepository<IntegrationRetryQueueEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "integration_retry_queue", ["id", "event_id", "retry_count", "next_attempt"], "IntegrationRetryQueue");
+  }
+}

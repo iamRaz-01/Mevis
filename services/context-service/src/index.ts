@@ -37,6 +37,8 @@ import {
   TaskRepository,
   ResourceRequestRepository,
   AttendanceRecordRepository,
+  IntegrationEventLogRepository,
+  IntegrationRetryQueueRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -104,6 +106,8 @@ import { type Volunteer, type Venue, type Resource, type Team, type Organization
 
 import { BusinessWorkflowOrchestrator } from "./workflows/orchestrator";
 import { type Incident, type Assignment, type Task, type ResourceRequest, type AttendanceRecord } from "./workflows/context";
+
+import { OperationalIntelligenceIntegrationOrchestrator } from "./integration/orchestrator";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -378,6 +382,18 @@ const businessWorkflowOrchestrator = new BusinessWorkflowOrchestrator(
   resourceRequestRepo,
   attendanceRecordRepo
 );
+
+const integrationLogRepo = new IntegrationEventLogRepository(dbClient);
+const integrationRetryRepo = new IntegrationRetryQueueRepository(dbClient);
+
+const integrationOrchestrator = new OperationalIntelligenceIntegrationOrchestrator(
+  integrationLogRepo,
+  integrationRetryRepo,
+  entityRepoPort,
+  decisionCandidateRepo
+);
+
+integrationOrchestrator.subscribeEvents();
 
 // Helper to write JSON HTTP responses
 function sendJson(
@@ -2155,6 +2171,66 @@ const server = http.createServer(async (req, res) => {
       const body = await readJson(req);
       const record = await businessWorkflowOrchestrator.checkOutVolunteer(body.volunteerId);
       return sendJson(res, 200, record);
+    }
+
+    // GET /api/integration/events - Lists logged events
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "integration" && segments[2] === "events" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await integrationLogRepo.findAll();
+      const list = rows.map((row: any) => ({
+        id: row.id,
+        eventType: row.event_type,
+        payload: JSON.parse(row.payload_json),
+        status: row.status,
+        timestamp: row.timestamp,
+        errorMessage: row.error_message,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /api/integration/status - Returns integration metrics
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "integration" && segments[2] === "status" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await integrationLogRepo.findAll();
+      const total = rows.length;
+      const completed = rows.filter((r: any) => r.status === "COMPLETED").length;
+      const failed = rows.filter((r: any) => r.status === "FAILED").length;
+      return sendJson(res, 200, { total, completed, failed });
+    }
+
+    // GET /api/integration/failures - Lists failed synchronizations
+    if (req.method === "GET" && segments[0] === "api" && segments[1] === "integration" && segments[2] === "failures" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await integrationLogRepo.findAll();
+      const list = rows.filter((r: any) => r.status === "FAILED").map((row: any) => ({
+        id: row.id,
+        eventType: row.event_type,
+        payload: JSON.parse(row.payload_json),
+        status: row.status,
+        timestamp: row.timestamp,
+        errorMessage: row.error_message,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // POST /api/integration/replay - Replays an event from dead-letter log
+    if (req.method === "POST" && segments[0] === "api" && segments[1] === "integration" && segments[2] === "replay" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const eventId = body.eventId;
+      if (!eventId) {
+        return sendJson(res, 400, undefined, [{ code: "BAD_REQUEST", message: "Missing eventId parameter." }]);
+      }
+      await integrationOrchestrator.replayEvent(eventId);
+      return sendJson(res, 200, { success: true });
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

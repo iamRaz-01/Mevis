@@ -71,6 +71,8 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM integration_retry_queue;");
+    await dbClient.execute("DELETE FROM integration_event_logs;");
     await dbClient.execute("DELETE FROM attendance_records;");
     await dbClient.execute("DELETE FROM assignments;");
     await dbClient.execute("DELETE FROM incident_timelines;");
@@ -1094,5 +1096,34 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
       { "x-actor-role": "ROLE_ADMIN" }
     );
     assert.strictEqual(res.status, 500);
+  });
+
+  let replayedEventId: string;
+
+  test("88. Verify GET /api/integration/events returns logged integration events", async () => {
+    const res = await makeRequest("GET", "/api/integration/events", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length > 0);
+    replayedEventId = list[0].id;
+  });
+
+  test("89. Verify GET /api/integration/status returns metrics summary", async () => {
+    const res = await makeRequest("GET", "/api/integration/status", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.ok(data.total > 0);
+    assert.strictEqual(data.failed, 0);
+  });
+
+  test("90. Verify POST /api/integration/replay re-triggers event synchronizations", async () => {
+    const res = await makeRequest(
+      "POST",
+      "/api/integration/replay",
+      { eventId: replayedEventId },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.payload.data.success, true);
   });
 });

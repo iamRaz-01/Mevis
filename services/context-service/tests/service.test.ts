@@ -71,6 +71,9 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     await dbClient.execute("DELETE FROM trusted_decisions;");
     await dbClient.execute("DELETE FROM decision_runtime_states;");
     await dbClient.execute("DELETE FROM decision_snapshots;");
+    await dbClient.execute("DELETE FROM reasoning_steps;");
+    await dbClient.execute("DELETE FROM reasoning_plans;");
+    await dbClient.execute("DELETE FROM detected_intents;");
     await dbClient.execute("DELETE FROM user_memories;");
     await dbClient.execute("DELETE FROM ai_conversation_messages;");
     await dbClient.execute("DELETE FROM conversation_messages;");
@@ -1323,5 +1326,88 @@ describe("MEVIS World Model Platform Service E2E Tests", () => {
     );
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.payload.data.success, true);
+  });
+
+  test("108. Verify GET /runtime/ai/tools lists preconfigured tools", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/tools", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 4);
+    assert.strictEqual(list[0].name, "KNOWLEDGE_BASE");
+  });
+
+  test("109. Verify GET /runtime/ai/agents lists preconfigured agents", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/agents", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.strictEqual(list.length, 3);
+    assert.strictEqual(list[0].id, "navigation_agent");
+  });
+
+  let testPlanId = "";
+
+  test("110. Verify POST /runtime/ai/orchestrate plans NAVIGATION intent steps", async () => {
+    // Start session first
+    const sessRes = await makeRequest(
+      "POST",
+      "/runtime/ai/session",
+      { userId: masterVolunteerId, activeIncidentId: testIncidentId, activeVenueId: "VENUE-01" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const sessId = sessRes.payload.data.session.id;
+
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/orchestrate",
+      { sessionId: sessId, query: "Where is the main entrance Gate C?" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.plan.intent, "NAVIGATION");
+    assert.ok(data.plan.steps.length > 0);
+    assert.ok(data.graph.nodes.length > 0);
+    assert.ok(data.graph.edges.length > 0);
+    testPlanId = data.plan.id;
+  });
+
+  test("111. Verify POST /runtime/ai/orchestrate plans REPORT_GENERATION intent steps", async () => {
+    const sessRes = await makeRequest(
+      "POST",
+      "/runtime/ai/session",
+      { userId: masterVolunteerId, activeIncidentId: testIncidentId, activeVenueId: "VENUE-01" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    const sessId = sessRes.payload.data.session.id;
+
+    const res = await makeRequest(
+      "POST",
+      "/runtime/ai/orchestrate",
+      { sessionId: sessId, query: "Generate incident report summary" },
+      { "x-actor-role": "ROLE_ADMIN" }
+    );
+    assert.strictEqual(res.status, 200);
+    const data = res.payload.data;
+    assert.strictEqual(data.plan.intent, "REPORT_GENERATION");
+  });
+
+  test("112. Verify GET /runtime/ai/plans/:id retrieves plan details", async () => {
+    const res = await makeRequest(
+      "GET",
+      `/runtime/ai/plans/${testPlanId}`,
+      undefined,
+      { "x-actor-role": "ROLE_USER" }
+    );
+    assert.strictEqual(res.status, 200);
+    const plan = res.payload.data;
+    assert.strictEqual(plan.id, testPlanId);
+    assert.strictEqual(plan.intent, "NAVIGATION");
+  });
+
+  test("113. Verify GET /runtime/ai/intents lists detected intents history", async () => {
+    const res = await makeRequest("GET", "/runtime/ai/intents", undefined, { "x-actor-role": "ROLE_USER" });
+    assert.strictEqual(res.status, 200);
+    const list = res.payload.data as any[];
+    assert.ok(list.length >= 2);
   });
 });

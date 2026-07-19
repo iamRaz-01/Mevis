@@ -693,3 +693,47 @@ export class AiPersonaRepository extends RelationalRepository<AiPersonaEntity, s
     super(db, "ai_personas", ["id", "name", "tone", "capabilities_json", "response_constraints"], "AiPersona");
   }
 }
+
+export interface ReasoningPlanEntity extends Identifiable<string> {
+  id: string;
+  session_id: string;
+  query: string;
+  intent: string;
+  status: string;
+  created_at: string;
+}
+
+export class ReasoningPlanRepository extends RelationalRepository<ReasoningPlanEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "reasoning_plans", ["id", "session_id", "query", "intent", "status", "created_at"], "ReasoningPlan");
+  }
+}
+
+export interface ReasoningStepEntity extends Identifiable<string> {
+  id: string;
+  plan_id: string;
+  step_index: number;
+  description: string;
+  status: string;
+  target_engine: string;
+}
+
+export class ReasoningStepRepository extends RelationalRepository<ReasoningStepEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "reasoning_steps", ["id", "plan_id", "step_index", "description", "status", "target_engine"], "ReasoningStep");
+  }
+}
+
+export interface DetectedIntentEntity extends Identifiable<string> {
+  id: string;
+  query: string;
+  intent_type: string;
+  confidence: number;
+  created_at: string;
+}
+
+export class DetectedIntentRepository extends RelationalRepository<DetectedIntentEntity, string> {
+  constructor(db: DatabaseClient) {
+    super(db, "detected_intents", ["id", "query", "intent_type", "confidence", "created_at"], "DetectedIntent");
+  }
+}

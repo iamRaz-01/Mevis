@@ -49,6 +49,9 @@ import {
   AiConversationMessageRepository,
   UserMemoryRepository,
   AiPersonaRepository,
+  ReasoningPlanRepository,
+  ReasoningStepRepository,
+  DetectedIntentRepository,
   type WorldEntityEntity,
   type WorldRelationshipEntity
 } from "./repository";
@@ -135,6 +138,14 @@ import { MemoryManager } from "./ai/memory-manager";
 import { PromptOrchestrator } from "./ai/prompt-orchestrator";
 import { PersonaRegistry } from "./ai/persona-registry";
 import { AiGateway } from "./ai/gateway";
+
+import { IntentEngine } from "./ai/reasoning/intent-engine";
+import { TaskPlanner } from "./ai/reasoning/task-planner";
+import { ContextResolver } from "./ai/reasoning/context-resolver";
+import { ToolSelector } from "./ai/reasoning/tool-selector";
+import { AgentOrchestrator } from "./ai/reasoning/agent-orchestrator";
+import { GraphBuilder } from "./ai/reasoning/graph-builder";
+import { CognitiveOrchestrator } from "./ai/reasoning/orchestrator";
 
 const logger = new StructuredLogger("ContextService");
 const serviceConfig = loadServiceConfig("context-service");
@@ -491,6 +502,28 @@ const aiGateway = new AiGateway(
   aiMemories,
   aiPrompts,
   aiPersonas
+);
+
+const reasoningPlanRepo = new ReasoningPlanRepository(dbClient);
+const reasoningStepRepo = new ReasoningStepRepository(dbClient);
+const detectedIntentRepo = new DetectedIntentRepository(dbClient);
+
+const runtimeIntentEngine = new IntentEngine(detectedIntentRepo);
+const runtimeTaskPlanner = new TaskPlanner();
+const runtimeContextResolver = new ContextResolver(volunteerRepo, incidentRepo, venueRepo);
+const runtimeToolSelector = new ToolSelector();
+const runtimeAgentOrchestrator = new AgentOrchestrator();
+const runtimeGraphBuilder = new GraphBuilder();
+
+const cognitiveOrchestrator = new CognitiveOrchestrator(
+  runtimeIntentEngine,
+  runtimeTaskPlanner,
+  runtimeContextResolver,
+  runtimeToolSelector,
+  runtimeAgentOrchestrator,
+  runtimeGraphBuilder,
+  reasoningPlanRepo,
+  reasoningStepRepo
 );
 
 // Helper to write JSON HTTP responses
@@ -2712,6 +2745,69 @@ const server = http.createServer(async (req, res) => {
       }
       await aiGateway.sessions.deleteSession(segments[3]);
       return sendJson(res, 200, { success: true });
+    }
+
+    // POST /runtime/ai/orchestrate - Processes query into reasoning plan
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "orchestrate" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await cognitiveOrchestrator.orchestrate(body.sessionId, body.query, body.activeIncidentId, body.activeVenueId);
+      return sendJson(res, 200, data);
+    }
+
+    // GET /runtime/ai/plans/:id - Retrieves reasoning plan details
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "plans" && segments[3] && !segments[4]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const plan = await cognitiveOrchestrator.getPlan(segments[3]);
+      return sendJson(res, 200, plan);
+    }
+
+    // GET /runtime/ai/intents - Returns history of detected intents
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "intents" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const rows = await detectedIntentRepo.findAll();
+      const list = rows.map((r: any) => ({
+        id: r.id,
+        query: r.query,
+        intentType: r.intent_type,
+        confidence: r.confidence,
+        createdAt: r.created_at,
+      }));
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/ai/tools - Lists available tool registries
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "tools" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = cognitiveOrchestrator.tools.listAllTools();
+      return sendJson(res, 200, list);
+    }
+
+    // GET /runtime/ai/agents - Lists available specialized agents
+    if (req.method === "GET" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "agents" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:read")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:read permission required." }]);
+      }
+      const list = cognitiveOrchestrator.agents.listAllAgents();
+      return sendJson(res, 200, list);
+    }
+
+    // POST /runtime/ai/reasoning - Synthesizes plan from intent
+    if (req.method === "POST" && segments[0] === "runtime" && segments[1] === "ai" && segments[2] === "reasoning" && !segments[3]) {
+      if (!hasPermission(ctx.actorRole, "world:write")) {
+        return sendJson(res, 403, undefined, [{ code: "FORBIDDEN", message: "world:write permission required." }]);
+      }
+      const body = await readJson(req);
+      const data = await cognitiveOrchestrator.orchestrate(body.sessionId, body.query);
+      return sendJson(res, 200, data);
     }
 
     return sendJson(res, 404, undefined, [{ code: "NOT_FOUND", message: "Endpoint not found." }]);

@@ -5,5 +5,8 @@
     "rootDir": "./"
   },
   "include": ["src/**/*"],
-  "references": [{ "path": "../communication" }]
+  "references": [
+    { "path": "../communication" },
+    { "path": "../contracts" }
+  ]
 }

@@ -1,0 +1,30 @@
+{
+  "name": "@mevis/operations-console",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MEVIS SRE & Platform Operations Console",
+  "scripts": {
+    "dev": "next dev -p 3009",
+    "build": "next build",
+    "start": "next start -p 3009",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mevis/config": "*",
+    "@mevis/core": "*",
+    "@mevis/logger": "*",
+    "@mevis/shared-types": "*",
+    "@mevis/platform-contracts": "*",
+    "@mevis/platform-frontend-client": "*",
+    "@mevis/platform-operations": "*",
+    "next": "^14.2.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.5"
+  }
+}

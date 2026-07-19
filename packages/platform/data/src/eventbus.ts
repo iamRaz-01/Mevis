@@ -1,15 +1,5 @@
 import { getRequestContext } from '@mevis/platform-communication';
-
-export interface PlatformEvent<T = unknown> {
-  readonly eventId: string;
-  readonly eventType: string;
-  readonly aggregateId: string;
-  readonly occurredAt: string;
-  readonly version: number;
-  readonly sourceService: string;
-  readonly correlationId: string;
-  readonly payload: T;
-}
+import { type PlatformEvent } from '@mevis/platform-contracts';
 
 export type EventHandler<T = unknown> = (event: PlatformEvent<T>) => Promise<void> | void;
 

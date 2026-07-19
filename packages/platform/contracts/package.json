@@ -1,0 +1,12 @@
+{
+  "name": "@mevis/platform-contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Centralized type definitions and contracts for the MEVIS platform",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
+}

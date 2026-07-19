@@ -8,7 +8,6 @@ import { Card } from "../components/Card";
 import { Alert } from "../components/Alert";
 import { Badge } from "../components/Badge";
 import { ErrorBoundary, Empty, Forbidden, Offline } from "../components/Feedback";
-import { featureFlags, releaseInfo, metrics } from "@mevis/platform-operations";
 
 export default function Home() {
   const { isAuthenticated, user, login } = useAuth();
@@ -176,115 +175,6 @@ export default function Home() {
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
                   API calls target port 8000, processed under CORS origins, rate-limit constraints, and JWT authorization rules.
                 </p>
-              </Card>
-            </div>
-          </div>
-        ) : currentPath === "/dashboard/ops" ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            <Card title="Operations Center" subtitle="Site Reliability & Runtime Platform Dashboard">
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <Alert type="info" message="Standardized distributed tracing correlation and metrics pipeline is active." />
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-                  This dashboard aggregates runtime signals, environment feature gates, SRE build release metadata, and container state profiles across the MEVIS platform.
-                </p>
-              </div>
-            </Card>
-
-            <div className="layout-grid">
-              <Card title="Release Metadata" subtitle="Release Engineering parameters" style={{ gridColumn: "span 6" }}>
-                <table style={{ width: "100%", fontSize: "0.875rem", borderCollapse: "collapse", color: "var(--text-secondary)" }}>
-                  <tbody>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Version:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right" }}><Badge variant="info">{releaseInfo.getMetadata().version}</Badge></td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Environment:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right" }}><Badge variant="success">{releaseInfo.getMetadata().environment}</Badge></td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Commit SHA:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right", fontFamily: "monospace" }}>{releaseInfo.getMetadata().commitSha}</td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Build Timestamp:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right", fontSize: "0.75rem" }}>{releaseInfo.getMetadata().buildTimestamp}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Card>
-
-              <Card title="Feature Configuration" subtitle="Runtime environment gates" style={{ gridColumn: "span 6" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  {Object.entries(featureFlags.getAllFlags()).map(([flagName, val]) => (
-                    <div
-                      key={flagName}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "0.5rem 0.75rem",
-                        borderRadius: "var(--radius-sm)",
-                        backgroundColor: "rgba(255,255,255,0.03)",
-                      }}
-                    >
-                      <span style={{ fontSize: "0.875rem", fontFamily: "monospace" }}>{flagName}</span>
-                      <Badge variant={val ? "success" : "neutral"}>
-                        {val ? "ENABLED" : "DISABLED"}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              <Card title="Telemetry Metrics" subtitle="Uptime & heap utilization signals" style={{ gridColumn: "span 6" }}>
-                <table style={{ width: "100%", fontSize: "0.875rem", borderCollapse: "collapse", color: "var(--text-secondary)" }}>
-                  <tbody>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Uptime:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right" }}>{metrics.getSystemMetrics().uptime.toFixed(1)} seconds</td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Heap Total:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right" }}>{(metrics.getSystemMetrics().memory.heapTotal / 1024 / 1024).toFixed(1)} MB</td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Heap Used:</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right" }}>{(metrics.getSystemMetrics().memory.heapUsed / 1024 / 1024).toFixed(1)} MB</td>
-                    </tr>
-                    <tr style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "0.5rem 0" }}><strong>Resident Set (RSS):</strong></td>
-                      <td style={{ padding: "0.5rem 0", textAlign: "right" }}>{(metrics.getSystemMetrics().memory.rss / 1024 / 1024).toFixed(1)} MB</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Card>
-
-              <Card title="Active Systems Status" subtitle="Readiness & availability checks" style={{ gridColumn: "span 6" }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  {[
-                    { name: "API Gateway Service (Port 8000)", status: "UP" },
-                    { name: "Identity Service (Spring Boot Authentication)", status: "UP" },
-                    { name: "Configuration Service (Infrastructure API)", status: "UP" },
-                    { name: "Auditing & Storage Services (Infrastructure APIs)", status: "UP" },
-                    { name: "SqliteDatabase (Persistent Relational)", status: "UP" },
-                    { name: "LocalEventBus (Standard Event Bus)", status: "UP" },
-                  ].map((service) => (
-                    <div
-                      key={service.name}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "0.375rem 0.5rem",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      <span>{service.name}</span>
-                      <Badge variant="success">{service.status}</Badge>
-                    </div>
-                  ))}
-                </div>
               </Card>
             </div>
           </div>

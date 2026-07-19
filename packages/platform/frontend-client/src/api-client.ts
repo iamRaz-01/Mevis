@@ -1,4 +1,4 @@
-import { type StandardResponse } from "@mevis/platform-communication";
+import { type StandardResponse } from "@mevis/platform-contracts";
 
 export interface ApiClientConfig {
   readonly gatewayUrl: string;

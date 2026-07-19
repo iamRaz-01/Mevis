@@ -16,6 +16,7 @@
     { "path": "packages/platform/service-registry" },
     { "path": "packages/platform/service-client" },
     { "path": "packages/platform/data" },
+    { "path": "packages/platform/contracts" },
     { "path": "packages/platform/edge-runtime" },
     { "path": "packages/platform/frontend-client" },
     { "path": "packages/platform/operations" },

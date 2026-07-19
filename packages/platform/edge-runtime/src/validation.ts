@@ -1,4 +1,4 @@
-import { type StandardError } from '@mevis/platform-communication';
+import { type StandardError } from '@mevis/platform-contracts';
 
 export interface SchemaField {
   readonly type: 'string' | 'number' | 'boolean';

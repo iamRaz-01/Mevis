@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mevis/core": "*"
+    "@mevis/core": "*",
+    "@mevis/platform-contracts": "*"
   }
 }

@@ -1,11 +1,11 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type http from 'node:http';
+import {
+  type RequestContext as BaseRequestContext,
+  type StandardError as BaseError,
+} from '@mevis/platform-contracts';
 
-export interface RequestContext {
-  readonly requestId: string;
-  readonly correlationId: string;
-  readonly actorId?: string;
-  readonly actorRole?: string;
+export interface RequestContext extends BaseRequestContext {
   readonly clientIp?: string;
 }
 
@@ -21,11 +21,7 @@ export interface StandardResponse<T = unknown> {
   };
 }
 
-export interface StandardError {
-  readonly code: string;
-  readonly message: string;
-  readonly field?: string;
-}
+export type StandardError = BaseError;
 
 // Global thread-safe context storage
 export const contextStorage = new AsyncLocalStorage<RequestContext>();

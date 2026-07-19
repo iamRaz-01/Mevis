@@ -1,9 +1,4 @@
-export interface ReleaseMetadata {
-  readonly version: string;
-  readonly environment: string;
-  readonly commitSha: string;
-  readonly buildTimestamp: string;
-}
+import { type ReleaseMetadata } from "@mevis/platform-contracts";
 
 export class ReleaseService {
   private readonly metadata: ReleaseMetadata;

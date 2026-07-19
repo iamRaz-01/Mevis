@@ -2,17 +2,26 @@
   "name": "@mevis/dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "MEVIS Dashboard application stub",
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "description": "MEVIS Ops Dashboard Frontend Application",
   "scripts": {
-    "build": "tsc",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mevis/core": "^1.0.0",
-    "@mevis/config": "^1.0.0",
-    "@mevis/logger": "^1.0.0",
-    "@mevis/shared-types": "^1.0.0"
+    "@mevis/config": "*",
+    "@mevis/core": "*",
+    "@mevis/logger": "*",
+    "@mevis/shared-types": "*",
+    "next": "^14.2.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.5"
   }
 }

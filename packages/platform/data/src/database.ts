@@ -21,7 +21,9 @@ export class SqliteDatabaseAdapter implements DatabaseClient {
   async query<T = unknown>(sql: string, params: unknown[] = []): Promise<T[]> {
     try {
       const stmt = this.db.prepare(sql);
-      const rows = stmt.all(...(params as Array<string | number | bigint | Buffer | Uint8Array | null>)) as T[];
+      const rows = stmt.all(
+        ...(params as Array<string | number | bigint | Buffer | Uint8Array | null>),
+      ) as T[];
       return rows;
     } catch (err) {
       throw new Error(

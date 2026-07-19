@@ -8,8 +8,8 @@ export default tseslint.config(
       '**/dist/**',
       '**/build/**',
       '**/coverage/**',
-      '.next/**',
-      '.nuxt/**',
+      '**/.next/**',
+      '**/.nuxt/**',
     ],
   },
   {

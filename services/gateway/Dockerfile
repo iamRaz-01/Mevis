@@ -28,7 +28,7 @@ COPY packages/platform/operations/package.json ./packages/platform/operations/
 COPY packages/platform/service-client/package.json ./packages/platform/service-client/
 COPY services/gateway/package.json ./services/gateway/
 
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 
 COPY packages/ ./packages/
 COPY services/gateway/ ./services/gateway/
@@ -61,7 +61,7 @@ COPY packages/platform/operations/package.json ./packages/platform/operations/
 COPY packages/platform/service-client/package.json ./packages/platform/service-client/
 COPY services/gateway/package.json ./services/gateway/
 
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 COPY --from=builder /app/packages/config/dist ./packages/config/dist
 COPY --from=builder /app/packages/core/dist ./packages/core/dist

@@ -32,7 +32,7 @@ COPY packages/platform/service-registry/package.json ./packages/platform/service
 COPY services/context-service/package.json ./services/context-service/
 
 # Install all dependencies (workspace-aware)
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 
 # Copy source code for required packages
 COPY packages/ ./packages/
@@ -76,7 +76,7 @@ COPY packages/platform/service-registry/package.json ./packages/platform/service
 COPY services/context-service/package.json ./services/context-service/
 
 # Install production dependencies only
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # Copy compiled output from builder
 COPY --from=builder /app/packages/config/dist ./packages/config/dist

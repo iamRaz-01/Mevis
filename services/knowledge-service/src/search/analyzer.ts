@@ -37,7 +37,7 @@ export class QueryAnalyzer {
 
     while ((match = filterRegex.exec(trimmed)) !== null) {
       const key = match[1].toLowerCase();
-      let val = match[2].replace(/"/g, "").trim();
+      const val = match[2].replace(/"/g, "").trim();
 
       if (key === "tag") {
         tagsList.push(val);

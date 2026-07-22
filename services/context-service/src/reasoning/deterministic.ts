@@ -8,7 +8,7 @@ export class DeterministicReasoningEngine {
   } {
     const matchedRules: string[] = [];
     let distanceHops = 1;
-    let slaMet = true;
+    const slaMet = true;
 
     const twin = candidate.context.twinSnapshot;
     const type = candidate.decisionType;

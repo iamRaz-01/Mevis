@@ -28,7 +28,7 @@ export class AuditEngine {
     const id = crypto.randomUUID();
     const timestamp = new Date().toISOString();
 
-    let entityId = payload.incidentId || payload.volunteerId || payload.taskId || payload.assignmentId || "SYSTEM";
+    const entityId = payload.incidentId || payload.volunteerId || payload.taskId || payload.assignmentId || "SYSTEM";
     let entityType = "SYSTEM";
     if (eventType.startsWith("Incident")) entityType = "Incident";
     else if (eventType.startsWith("Volunteer") || eventType.startsWith("Attendance")) entityType = "Volunteer";
